@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <title>Planejamento de Animes</title>
+  <script src="https://unpkg.com/vue@2.4.4/dist/vue.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app" v-cloak>
+    <div class="season-area" ref="seasonArea"
+      @scroll="handleScroll">
+      <div class="season-area-scroller" :style="{height: (lastRow * 25) + 'px'}">
+        <div class="last-pushed" v-if="lastPushed" :style="{
+          top: (lastPushed[1] * 25) + 'px',
+          left: (lastPushed[0] * 25) + 'px'
+        }">
+          <div class="last-pushed_left" :style="{
+            height: 'calc(100vh - ' + (lastPushed[1] * 25 + 42) + 'px)'
+          }"></div>
+          <div class="last-pushed_right" :style="{
+            height: (lastPushed[1] * 25) + 'px'
+          }"></div>
+        </div>
+        <div class="season" v-for="season in seasons"
+          v-handle-intersection="{active: season.loops > 9}"
+          :style="{
+            top: (season.orderIndex * 25 - 1) + 'px',
+            left: (season.start * 25 - 1) + 'px',
+            width: (season.loops * 25 - 9) + 'px',
+            backgroundColor: season.bgColor,
+            backgroundImage: season.skipPerLoop > 0 ? ('repeating-linear-gradient(90deg, transparent 0px, transparent 25px,' +
+              'rgba(255, 255, 255, 0.75) 25px, rgba(255, 255, 255, 0.75) ' + (season.skipPerLoop * 25 + 25) + 'px)') : '',
+            color: season.textColor
+          }">
+          <span>{{ season.firstEpisode }}</span>
+          <span :class="{
+            'name': true,
+            'name-inside': season.loops > 6,
+            'name-outside': season.loops <= 6
+          }">
+            <a v-if="season.anilistId" target="_blank"
+              :href="'https://anilist.co/anime/' + season.anilistId"
+            >{{ season.anime }}</a>
+            <span v-else>{{ season.anime }}</span>
+          </span>
+          <span v-if="season.loops > 1">{{ season.episodeCount }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tinycolor/1.1.2/tinycolor.min.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>

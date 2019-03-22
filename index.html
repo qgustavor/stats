@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang=pt>
+<meta charset=utf-8>
+<meta name=viewport content="initial-scale=1, minimum-scale=1, width=device-width">
+<title>Estatísticas</title>
+<style>
+html, body {
+  min-height: 100%;
+}
+body {
+  margin: 5em 5em 0;
+  line-height: 1.6;
+  font-size: 1.25rem;
+  color: #444;
+  padding: 0 10px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+  background: #ffeb3b linear-gradient(-45deg, #FFC107, #FFEB3B);
+}
+a {
+  color: 3f51b5;
+}
+h1 {
+  line-height: 1.2;
+  color: #3F51B5;
+  text-decoration: underline dashed;
+}
+#backart {
+  position: absolute;
+  font-size: 50vh;
+  z-index: -1;
+  color: white;
+  bottom: 0;
+  right: 0;
+  opacity: 0.2;
+  line-height: 1em;
+  padding: 0;
+  overflow: hidden;
+  user-select: none;
+}
+</style>
+
+<h1>Estatísticas</h1>
+
+<ul>
+  <li><a href="planning/">Planejamento de animes a serem assistidos</a>
+  <li>Mais estatísticas em breve...
+</ul>
+
+<p><a href="https://qgustavor.github.io/blog/">Visite o blog</a>
+
+<div id="backart" aria-hidden></div>
+<script>backart.textContent = (Math.random() * 10).toFixed(3)</script>
