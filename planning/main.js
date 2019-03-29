@@ -61,15 +61,15 @@ const app = new Vue({
         const lastEntryEpisode = data.lastEntryEpisode
         const lastEntryId = data.lastEntryId
 
-        const lastSeason = data.seasons.find(e => {
+        const lastSeason = data.seasons.filter(e => {
           return e.animeId === lastEntryId &&
             e.firstEpisode <= lastEntryEpisode &&
             e.firstEpisode + e.episodeCount > lastEntryEpisode
-        })
+        }).pop()
         if (!lastSeason) return
 
         this.lastPushed = [
-          lastSeason.start + lastEntryEpisode,
+          lastSeason.start + lastEntryEpisode - 1,
           lastSeason.orderIndex
         ]
 
