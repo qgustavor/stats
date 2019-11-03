@@ -82,14 +82,42 @@ const app = new Vue({
       this.seasons.forEach(season => {
         const baseColor = getAnimeColor(season.anime)
         season.bgColor = baseColor.toString()
-        season.textColor = baseColor.getLuminance() > 0.5 ? 'black' : 'white'
+        season.textColor = season.skipPerLoop || baseColor.getLuminance() > 0.5 ? 'black' : 'white'
+        season.bgColorAlt = tinycolor.mix('white', baseColor, 25).toString()
 
         if (!season.skipPerLoop) season.skipPerLoop = 0
         if (!season.episodesPerLoop) season.episodesPerLoop = 1
 
         const episodes = season.episodeCount - season.firstEpisode + 1
         season.loops = Math.ceil((episodes + (episodes - 1) * season.skipPerLoop) / season.episodesPerLoop)
+        season.textSize = Math.round(season.anime.length / 2.7)
       })
+
+      this.seasons.forEach(season => {
+        season.labelPosition = this.getLabelPosition(season)
+      })
+    },
+    getLabelPosition (season) {
+      if (season.loops > season.textSize) return 'inside'
+
+      const hasSpaceAtRight = !this.seasons.find(e =>
+        e !== season && e.orderIndex === season.orderIndex &&
+        e.start <= season.start + season.loops + season.textSize &&
+        e.start >= season.start + season.loops
+      )
+      if (hasSpaceAtRight) return 'right'
+
+      const hasSpaceAbove = !this.seasons.find(e =>
+        e !== season && e.loops < season.textSize && e.orderIndex === season.orderIndex &&
+        e.start + season.textSize > season.start &&
+        e.start + e.loops <= season.start
+      ) && !this.seasons.find(e =>
+        e !== season && e.orderIndex === season.orderIndex - 1 &&
+        !(e.start > season.start + season.loops || e.start + e.loops < season.start)
+      )
+      if (hasSpaceAbove) return 'above'
+
+      return 'below'
     },
     handleScroll () {
       const {scrollWidth} = this.$refs.seasonArea.parentNode

@@ -37,6 +37,10 @@ body, .app, .season-area {
   display: flex;
   border: 1px solid #888;
   justify-content: space-between;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 .season .name {
@@ -47,18 +51,35 @@ body, .app, .season-area {
   overflow: hidden;
 }
 
-.season .name-outside {
+.season .name-right,
+.season .name-above,
+.season .name-below {
   position: absolute;
-  right: -5px;
   color: #111;
   width: 0;
 }
 
-.season .name-outside > span {
+.season .name-right { right: -5px; }
+.season .name-above { top: -25px; }
+.season .name-below { bottom: -25px; }
+
+.season .name-right > span,
+.season .name-above > span,
+.season .name-below > span {
   position: relative;
   left: 0;
   width: 100%;
   background: white;
+  padding: 1px 1px 2px;
+}
+
+.season .name-above > span::before {
+  content: '↓';
+  color: red
+}
+.season .name-below > span::before {
+  content: '↑';
+  color: red
 }
 
 .season .name a {
