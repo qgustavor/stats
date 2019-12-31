@@ -63,22 +63,24 @@ body, .app, .season-area {
 .season .name-above { top: -25px; }
 .season .name-below { bottom: -25px; }
 
-.season .name-right > span,
-.season .name-above > span,
-.season .name-below > span {
+.season .name-right > a,
+.season .name-above > a,
+.season .name-below > a {
   position: relative;
   left: 0;
-  width: 100%;
   background: white;
-  padding: 1px 1px 2px;
+  padding: 1px 5px 2px 1px;
+  top: -1px;
 }
 
-.season .name-above > span::before {
+.season .name-above > a::before {
   content: '↓';
+  padding-right: 5px;
   color: red
 }
-.season .name-below > span::before {
+.season .name-below > a::before {
   content: '↑';
+  padding-right: 5px;
   color: red
 }
 
