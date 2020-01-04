@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>Timeline geral de animes assistidos</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/3.0.3/normalize.min.css">
+<style>
+  html,
+  body {
+    background: #fff;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: .1em;
+    bottom: .5em;
+    margin: 0;
+    padding: 0;
+  }
+</style>
+
+<script src="https://www.gstatic.com/charts/loader.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tabletop.js/1.4.2/tabletop.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tinycolor/1.1.2/tinycolor.min.js"></script>
+<script src="anime-color.js"></script>
+
+<div id="container" class="container">Carregando / Loading </div>
+<script>
+google.charts.load('current', {'packages': ['timeline']})
+google.charts.setOnLoadCallback(function () {
+  Tabletop.init({
+    key: '1kW8dzToIjyumRM5US4o2dHB8mwBhuOw81KPKGMy6YZE',
+    callback: fetchCallback
+  })
+})
+
+function fetchCallback (sheets, tabletop) {
+  var container = document.getElementById('container')
+  var chart = new google.visualization.Timeline(container)
+  var dataTable = new google.visualization.DataTable()
+  dataTable.addColumn({
+    type: 'string',
+    id: 'Anime'
+  })
+  dataTable.addColumn({
+    type: 'string',
+    id: 'Episode'
+  })
+  dataTable.addColumn({
+    type: 'string',
+    role: 'style'
+  })
+  dataTable.addColumn({
+    type: 'date',
+    id: 'Date'
+  })
+  dataTable.addColumn({
+    type: 'date',
+    id: 'Date 2'
+  })
+  var padding = 30 * 60 * 1000 // 30 minutes
+  var keys = {
+    assistido: 'Assistido',
+    nome: 'Nome',
+    data: 'Data',
+    episodio: 'Episódio'
+  }
+  var assistido = sheets[keys.assistido].elements
+  var names = assistido.map(function (e) {
+    return e[keys.nome]
+  })
+  var uniqueNames = names.filter(function (e, i) {
+    return i === names.indexOf(e)
+  })
+  var ordem = uniqueNames.sort(function (a, b) {
+    return (new Date(
+        assistido[names.lastIndexOf(b)][keys.data]
+      )).getTime() - (new Date(
+        assistido[names.lastIndexOf(a)][keys.data]
+      )).getTime()
+  })
+  var data = assistido.map(function (e, n) {
+    var date = new Date(e[keys.data])
+    var next = names.indexOf(e[keys.nome], n + 1)
+    var date2 = date
+    if (next !== -1) {
+      if (+assistido[next][keys.episodio] <= +e[keys.episodio]) {
+        return false
+      }
+      date2 = new Date(assistido[next][keys.data])
+    }
+    var color = getAnimeColor(e[keys.nome], e[keys.episodio] % 2 === 0, sheets)
+    var style = 'stroke-width: 0; fill-color: ' + color.toString()
+    return [e[keys.nome], e[keys.episodio], style, date, date2]
+  }).filter(function (e) {
+    return e && names.indexOf(e[0]) !== names.lastIndexOf(e[0])
+  }).sort(function (a, b) {
+    return ordem.indexOf(a[0]) - ordem.indexOf(b[0])
+  })
+  dataTable.addRows(data)
+  var nextRender
+  var renderTimer = null
+  window.addEventListener('resize', function () {
+    clearTimeout(renderTimer)
+    renderTimer = setTimeout(doDraw, nextRender - Date.now())
+  })
+  doDraw()
+
+  function doDraw () {
+    nextRender = Date.now() + 1e3
+    chart.draw(dataTable)
+  }
+}
+</script>

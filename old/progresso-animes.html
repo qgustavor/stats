@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>Diagrama de progresso dos animes assistidos</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/3.0.3/normalize.min.css">
+<style>
+html, body {
+  background: #fff;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: .1em;
+  bottom: .5em;
+  margin: 0;
+  padding: 0;
+}
+</style>
+
+<script src="https://www.gstatic.com/charts/loader.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tabletop.js/1.4.2/tabletop.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tinycolor/1.1.2/tinycolor.min.js"></script>
+<script src="anime-color.js"></script>
+
+<div id="container" class="container">Carregando / Loading </div>
+<script>
+google.charts.load('current', {'packages': ['corechart']})
+google.charts.setOnLoadCallback(function () {
+  Tabletop.init({
+    key: '1kW8dzToIjyumRM5US4o2dHB8mwBhuOw81KPKGMy6YZE',
+    callback: fetchCallback
+  })
+})
+
+function fetchCallback (sheets, tabletop) {
+  var aWeek = 7 * 24 * 60 * 60 * 1000
+  var container = document.getElementById('container')
+  var chart = new google.visualization.LineChart(container)
+  var dataTable = new google.visualization.DataTable()
+
+  var keys = {
+    assistido: 'Assistido',
+    animes: 'Animes',
+    nome: 'Nome',
+    data: 'Data',
+    episodio: 'Episódio',
+    episodios: 'Episódios'
+  }
+
+  var watchedSheet = sheets[keys.assistido].elements
+  var animeSheet = sheets[keys.animes].elements
+
+  var watchedNames = watchedSheet.map(function (e) {
+    return e[keys.nome]
+  }).filter(function (element, index, array) {
+    return array.indexOf(element) === index
+  })
+
+  var seasons = watchedNames.reduce(function (obj, e) {
+    obj[e] = []
+    return obj
+  }, {})
+
+  watchedSheet.sort(function (a, b) {
+    return a[keys.data].localeCompare(b[keys.data])
+  }).forEach(function (e) {
+    var animeSeasons = seasons[e[keys.nome]]
+    var lastSeason = animeSeasons[animeSeasons.length - 1]
+
+    if (!lastSeason || lastSeason.episodio > +e[keys.episodio]) {
+      animeSeasons.push({
+        minDate: e[keys.data],
+        maxDate: e[keys.data],
+        episodioMin: Number(e[keys.episodio]),
+        episodio: Number([keys.episodio]),
+        count: lastSeason ? (lastSeason.count + 1) : 1
+      })
+    } else {
+      lastSeason.episodio = e[keys.episodio]
+      lastSeason.maxDate = e[keys.data]
+    }
+  })
+
+  var filteredAnimeData = animeSheet.filter(function (entry) {
+    return watchedNames.indexOf(entry[keys.nome]) !== -1 &&
+      Number(entry[keys.episodios]) > 2 &&
+      seasons[entry[keys.nome]].filter(function (season) {
+        var minDate = new Date(season.minDate)
+        var maxDate = new Date(season.maxDate)
+        var interval = maxDate - minDate
+        return interval > 12 * aWeek
+      }).length > 0
+  })
+
+  var names = filteredAnimeData.map(function (e) {
+    return e[keys.nome]
+  })
+
+  var episodeCounts = filteredAnimeData.map(function (e) {
+    return Number(e[keys.episodios])
+  })
+
+  dataTable.addColumn({type: 'date', id: 'Data'})
+
+  names.forEach(function (name) {
+    dataTable.addColumn({type: 'number', id: name})
+    dataTable.addColumn({type: 'string', role: 'tooltip'})
+  })
+
+  var data = []
+  var days = []
+
+  watchedSheet.forEach(function (element) {
+    var watchedAnime = element[keys.nome]
+    var watchedEpisode = Number(element[keys.episodio])
+    var watchedDate = new Date(element[keys.data])
+
+    var animeIndex = names.indexOf(watchedAnime)
+    if (animeIndex === -1) return
+
+    var roundedDate = Math.round(watchedDate.valueOf() / aWeek)
+    var index = days.indexOf(roundedDate)
+
+    if (index === -1) {
+      index = days.length
+      var line = [watchedDate]
+      names.forEach(function (name) {
+        line.push(-1, name + ' - ' + watchedDate.toLocaleDateString())
+      })
+      data.push(line)
+      days.push(roundedDate)
+    }
+
+    data[index][2 * animeIndex + 1] = watchedEpisode
+  })
+
+  data.sort(function (left, right) {
+    return left[0].valueOf() - right[0].valueOf()
+  })
+
+  data.forEach(function (line, index) {
+    if (index === 0) {
+      for (var i = 1; i < line.length; i += 2) {
+        if (line[i] === -1) {
+          line[i] = null
+        }
+      }
+      return
+    }
+    for (var i = 1; i < line.length; i += 2) {
+      if (line[i] === -1) {
+        line[i] = data[index - 1][i]
+      } else if (line[i] < data[index - 1][i]) {
+        data[index - 1][i] = null
+      } else if (data[index - 1][i] === null) {
+        data[index - 1][i] = 0
+      }
+    }
+  })
+
+  data.forEach(function (line, index) {
+    for (var i = 1; i < line.length; i += 2) {
+      if (line[i] === null) continue
+      var episodes = episodeCounts[(i - 1) / 2]
+      line[i + 1] += ' - ' + line[i] + ' / ' + episodes
+      if (line[i] === episodes && index > 0) {
+        line[i] = data[index - 1][i] === null || data[index - 1][i] === 1 ? null : 1
+      } else {
+        line[i] /= episodes
+      }
+    }
+  })
+
+  dataTable.addRows(data)
+
+  var animeColors = names.map(function (name) {
+    return getAnimeColor(name, false, sheets).toString()
+  })
+
+  var options = {
+    colors: animeColors,
+    legend: 'none',
+    chartArea: {
+      left: '3%',
+      top: '3%',
+      width: '100%',
+      height: '92%'
+    },
+    vAxis: {
+      format: 'percent'
+    },
+    explorer: {
+      axis: 'horizontal',
+      keepInBounds: true,
+      maxZoomIn: 4.0
+    }
+  }
+
+  var view = new google.visualization.DataView(dataTable)
+  var isSelected = false
+
+  google.visualization.events.addListener(chart, 'select', function () {
+    var selection = chart.getSelection()
+    var column = selection[0].column
+    isSelected = !isSelected
+    if (isSelected) {
+      view.setColumns([ 0, column, column + 1 ])
+      options.colors = [animeColors[(column - 1) / 2]]
+    } else {
+      view = new google.visualization.DataView(dataTable)
+      options.colors = animeColors
+    }
+    doDraw()
+  })
+
+  var nextRender
+  var renderTimer = null
+  window.addEventListener('resize', function () {
+    clearTimeout(renderTimer)
+    renderTimer = setTimeout(doDraw, nextRender - Date.now())
+  })
+
+  doDraw()
+
+  function doDraw () {
+    nextRender = Date.now() + 1e3
+    chart.draw(view, options)
+  }
+}
+</script>

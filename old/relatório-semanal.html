@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>Gráfico de episódios assistidos por semana</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/3.0.3/normalize.min.css">
+<style>
+  html,
+  body {
+    background: #fff;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: .1em;
+    bottom: .5em;
+    margin: 0;
+    padding: 0;
+  }
+</style>
+
+<script src="https://www.gstatic.com/charts/loader.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tabletop.js/1.4.2/tabletop.min.js"></script>
+<div id="container" class="container">Carregando / Loading </div>
+<script>
+google.charts.load('current', {'packages': ['corechart']})
+google.charts.setOnLoadCallback(function () {
+  Tabletop.init({
+    key: '1kW8dzToIjyumRM5US4o2dHB8mwBhuOw81KPKGMy6YZE',
+    callback: fetchCallback
+  })
+})
+
+function fetchCallback (sheets, tabletop) {
+  var container = document.getElementById('container')
+  var lastEp = {}
+  var keys = {
+    assistido: 'Assistido',
+    nome: 'Nome',
+    data: 'Data',
+    episodio: 'Episódio'
+  }
+
+  var invervalDataObj = sheets[keys.assistido].elements.reduce(function (acc, e) {
+    var date = new Date(e[keys.data])
+    var nome = e[keys.nome]
+    var epNum = lastEp[nome] ? (+e[keys.episodio] - lastEp[nome]) : 1
+
+    date.setDate(date.getDate() - date.getDay() + 1)
+    date.setHours(0)
+    date.setMinutes(0)
+    date.setSeconds(0)
+    date.setMilliseconds(0)
+    var day = Math.floor(date.valueOf())
+
+    // Handle rewatching as just one episode
+    if (epNum <= 0) epNum = 1
+
+    lastEp[nome] = +e[keys.episodio]
+    acc[day] = (acc[day] || 0) + epNum
+    return acc
+  }, {})
+
+  var now = Date.now()
+  var invervalData = Object.keys(invervalDataObj).map(function (e) {
+    var startDate = new Date(+e)
+    var lastDate = new Date(+e)
+    startDate.setDate(startDate.getDate() - 1)
+    lastDate.setDate(lastDate.getDate() + 6)
+    lastDate.setTime(lastDate.getTime() - 1)
+    return [
+      formatLocalDate(startDate).substr(0, 10) + '...' + formatLocalDate(lastDate).substr(8, 2),
+      invervalDataObj[e],
+      lastDate < now,
+      lastDate < now ? null : Math.round(
+        invervalDataObj[e] *
+        (lastDate - startDate) /
+        (now - startDate)
+      )
+    ]
+  })
+
+  var data = new google.visualization.DataTable()
+  data.addColumn('string', 'Semana')
+  data.addColumn('number', 'Episódios')
+  data.addColumn({
+    type: 'boolean',
+    role: 'certainty'
+  })
+  data.addColumn('number', 'Previsão')
+  data.addRows(invervalData.slice(1))
+
+  var options = {
+    title: 'Animes por dia',
+      // curveType: 'function',
+    legend: 'none',
+    chartArea: {
+      left: '3%',
+      top: 0,
+      width: '97%',
+      height: '100%'
+    }
+  }
+
+  var chart = new google.visualization.LineChart(container)
+  var nextRender
+  var renderTimer = null
+  window.addEventListener('resize', function () {
+    clearTimeout(renderTimer)
+    renderTimer = setTimeout(doDraw, nextRender - Date.now())
+  })
+  doDraw()
+
+  function doDraw () {
+    nextRender = Date.now() + 1e3
+    chart.draw(data, options)
+  }
+}
+
+function formatLocalDate (now) {
+  var tzo = -now.getTimezoneOffset(),
+    dif = tzo >= 0 ? '+' : '-',
+    pad = function (num) {
+      var norm = Math.abs(Math.floor(num))
+      return (norm < 10 ? '0' : '') + norm
+    }
+  return now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate()) + 'T' + pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' +
+      pad(now.getSeconds()) + dif + pad(tzo / 60) + ':' + pad(tzo % 60)
+}
+</script>

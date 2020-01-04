@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>Relatório de episódios assistidos por dia da semana e horário</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/3.0.3/normalize.min.css">
+<style>
+html, body {
+  background: #fff;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: .1em;
+  bottom: .5em;
+  margin: 0;
+  padding: 0;
+}
+
+.day-cell {
+  width: 12.5%;  width: calc(100% / 8);
+  height: 8.33%; height: calc(100% / 12);
+  overflow: hidden;
+  float: left;
+}
+
+.table-title {
+  background: #444;
+  color: #F4F4F4;
+}
+
+.day-count {
+  text-align: center;
+  font: 1.5em sans-serif;
+}
+
+.day-list {
+  display: none;
+  position: fixed;
+  left: 12.5%;
+  left: calc(100% / 8);
+  top: 0;
+  right: 0;
+  bottom: 0;
+  padding: 1em;
+  padding: 5vh 10vw;
+  margin: 0;
+  overflow-y: auto;
+}
+
+.day-list::before {
+  content: 'x';
+  position: fixed;
+  left: 0;
+  width: 12.5%;
+  width: calc(100% / 8);
+  top: 0;
+  bottom: 0;
+  background: #444;
+  color: #F4F4F4;
+  font-size: 5em;
+  text-align: center;
+  pointer-events: none;
+}
+
+.day-list li:first-child {
+  list-style: none;
+}
+
+.day-cell:focus .day-list {
+  display: block;
+}
+
+.day-list li:last-of-type {
+  padding-bottom: 20vh;
+}
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tabletop.js/1.4.2/tabletop.min.js"></script>
+<div id="container" class="container">Carregando / Loading </div>
+
+<script>
+Tabletop.init({
+  key: '1kW8dzToIjyumRM5US4o2dHB8mwBhuOw81KPKGMy6YZE',
+  callback: fetchCallback
+})
+
+function fetchCallback (sheets, tabletop) {
+  var container = document.getElementById('container')
+  var timeInterval = 864e5 * 7
+  var isoFixDelta = 3456e5 - 864e5
+  var lastEp = {}
+  var keys = {
+    assistido: 'Assistido',
+    nome: 'Nome',
+    data: 'Data',
+    episodio: 'Episódio'
+  }
+
+  var minDate = new Date('2014-07-29T11:45:21.000Z').valueOf()
+  var intervalData = []
+  for (var i = 0; i < 8 * 24; i++) {
+    intervalData[i] = {
+      list: {},
+      count: 0
+    }
+  }
+  invervalData = sheets[keys.assistido].elements
+    .reduce(function (acc, e) {
+      var date = new Date(e[keys.data]),
+        slot = date.getDay() + date.getHours() * 8 + 1,
+        nome = e[keys.nome],
+        epNum = lastEp[nome]
+        ? (+e[keys.episodio] - lastEp[nome])
+        : 1
+      if (date < minDate) {
+        return acc
+      }
+      // Handle rewatching as just one episode
+      if (epNum <= 0) epNum = 1
+      lastEp[nome] = +e[keys.episodio]
+      acc[slot].count += epNum
+      acc[slot].list[nome] = true
+      return acc
+    }, intervalData)
+
+  var maxValue = Math.max.apply(
+    null,
+    intervalData.map(function (e) {
+      return e.count
+    })
+  )
+
+  var weekDays = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
+  container.innerHTML = '<div class="day-cell table-title"></div>' + weekDays.map(function (day) {
+    return '<div class="day-cell table-title"><div class="day-count">' + day + '</div></div>'
+  }).join('') +
+  invervalData
+    .map(function (day, n) {
+      if (n % 8 === 0) {
+        return '<div class="day-cell table-title"><div class="day-count">' +
+          ('0' + Math.floor(n / 8)).substr(-2) + ':00</div></div>'
+      }
+      return '<div tabindex="0" class="day-cell" style="background-color:' + heatMapColorforValue(day.count / maxValue) + ';">' +
+        '<div class="day-count">' + day.count + '</div>' +
+        '<ul class="day-list" style="background-color:' + heatMapColorforValue(day.count / maxValue, 80) + ';"><li>' + ['<b>' +
+          weekDays[n % 8 - 1] + ' - ' +
+          ('0' + Math.floor(n / 8)).substr(-2) + ':00 → ' + day.count + ' episódio' + (day.count === 1 ? '' : 's') + '</b>'
+        ]
+        .concat(Object.keys(day.list))
+        .join('</li><li>') +
+        '</li></ul></div>'
+    }).join('')
+}
+
+function heatMapColorforValue (value, luminosity) {
+  var h = (1.0 - value) * 240
+  return 'hsl(' + h + ', 66%, ' + (luminosity || 70) + '%)'
+}
+</script>

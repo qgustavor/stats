@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>Gêneros de animes por mês</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/3.0.3/normalize.min.css">
+<style>
+html, body {
+  background: #fff;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: .1em;
+  bottom: .5em;
+  margin: 0;
+  padding: 0;
+}
+/* Fix popup flickering */
+.container svg > g:last-of-type {
+  pointer-events: none;
+}
+.order-control {
+  position: absolute;
+  top: 0.5em;
+  right: 0.5em;
+}
+</style>
+
+<script src="https://www.gstatic.com/charts/loader.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tabletop.js/1.4.2/tabletop.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tinycolor/1.1.2/tinycolor.min.js"></script>
+<div id="container" class="container">Carregando / Loading </div>
+<form class="order-control">
+  <strong>Ordem:</strong>
+  <label><input type="radio" name="order" value="alpha"> Alfabética</label>
+  <label><input type="radio" name="order" value="episodes" checked> Episódios</label>
+</form>
+
+<script>
+google.charts.load('current', {'packages': ['corechart']})
+google.charts.setOnLoadCallback(function () {
+  Tabletop.init({
+    key: '1kW8dzToIjyumRM5US4o2dHB8mwBhuOw81KPKGMy6YZE',
+    callback: fetchCallback
+  })
+})
+
+var orderInput = document.querySelector('input[name="order"][value="episodes"]')
+
+function getData (sheets, tabletop) {
+  var keys = {
+    assistido: 'Assistido',
+    animes: 'Animes',
+    nome: 'Nome',
+    data: 'Data',
+    episodio: 'Episódio',
+    generos: 'Gêneros'
+  }
+
+  var animeInfo = sheets[keys.animes].elements
+  var animeNames = animeInfo.map(function (e) {
+    return e[keys.nome]
+  })
+
+  var invervalDataObj = sheets[keys.assistido].elements.reduce(function (acc, e) {
+    var date = new Date(e[keys.data])
+    var name = e[keys.nome]
+
+    date.setDate(0)
+    date.setHours(0)
+    date.setMinutes(0)
+    date.setSeconds(0)
+    date.setMilliseconds(0)
+    var day = Math.floor(date.valueOf())
+
+    var index = animeNames.indexOf(name)
+    if (index === -1) {
+      console.log("%s episode score isn't defined, ignoring.", name)
+      return acc
+    }
+
+    var info = animeInfo[index]
+    var genres = info[keys.generos]
+    if (!genres) return acc
+
+    if (!acc[day]) acc[day] = {}
+    genres.split(/\s*,\s*/g).forEach(function (genre) {
+      if (!acc[day][genre]) acc[day][genre] = []
+      acc[day][genre].push(name)
+    })
+
+    return acc
+  }, {})
+
+  var genreList = 'Action|Adventure|Comedy|Dementia|Demons|Drama|Ecchi|Fantasy|Game|Harem|Historical|Horror|Josei|Kids|Magic|Martial Arts|Mecha|Military|Music|Mystery|Parody|Police|Psychological|Romance|Samurai|School|Sci-Fi|Seinen|Shoujo|Shoujo Ai|Shounen|Slice of Life|Space|Sports|Super Power|Supernatural|Thriller|Vampire|Yuri'.split('|')
+  function getGenreColor (genre) {
+    var index = genreList.indexOf(genre)
+    if (index === -1) return 'gray'
+    return tinycolor(index > 20 ? '#D22' : '#F11').spin(index * 108).toString()
+  }
+
+  var invervalKeys = Object.keys(invervalDataObj)
+  var invervalData = invervalKeys.map(function (e, i) {
+    var date = new Date(+e)
+    var genres = invervalDataObj[e]
+
+    var genreNames = Object.keys(genres)
+    var total = genreNames.reduce(function (sum, genre) {
+      return sum + genres[genre].length
+    }, 0)
+
+    var formattedDate = date.toLocaleDateString()
+    function formatText (category, value) {
+      var list = genres[category] || []
+      var value = list.length
+      var counts = list.reduce(function (counts, name) {
+        counts[name] = (counts[name] || 0) + 1
+        return counts
+      }, [])
+      const animeCount = Object.keys(counts).length
+      const maxList = Object.keys(counts).sort(function (a, b) {
+        return counts[b] - counts[a]
+      }).slice(0, 5)
+      return '<i>' + formattedDate + '</i> - <b>' + category + '</b> - ' +
+        value + ' episódios - ' + animeCount +
+        ' anime' + (animeCount === 1 ? '' : 's') + '<br><ul>' + maxList.map(function (name) {
+          return '<li>' + name + ': ' + counts[name] + ' episódio' + (counts[name] === 1 ? '' : 's') + '</li>'
+        }).join('') + '</ul>'
+    }
+    
+    var list = orderInput.checked
+      ? genreList.slice().map(function (e) {
+        return [e, (genres[e] || []).length]
+      }).sort(function (a, b) {
+        return b[1] - a[1]
+      }).map(function (e) {
+        return e[0]
+      })
+      : genreList
+
+    return [date].concat(list.reduce(function (row, genre, index) {
+      return [
+        (genres[genre] || []).length / total,
+        formatText(genre),
+        getGenreColor(genre)
+      ].concat(row)
+    }, []))
+  }).filter(function (e) {
+    return e
+  }).slice(2)
+
+  var data = new google.visualization.DataTable()
+  data.addColumn('date', 'Mês')
+  for (var i = 0; i < genreList.length; i++) {
+    data.addColumn('number', '% do gênero')
+    data.addColumn({ type: 'string', role: 'tooltip', p: {html: true} })
+    data.addColumn({ type: 'string', role: 'style' })
+  }
+  data.addRows(invervalData)
+  return data
+}
+
+function fetchCallback (sheets, tabletop) {
+  var container = document.getElementById('container')
+  var options = {
+    title: 'Gêneros por mês',
+    legend: 'none',
+    isStacked: 'percent',
+    tooltip: {isHtml: true},
+    chartArea: {
+      left: '3%',
+      top: '5%',
+      width: '97%',
+      height: '90%'
+    }
+  }
+  
+  var data = getData(sheets, tabletop)
+  function updateData () {
+    data = getData(sheets, tabletop)
+    doDraw()
+  }
+  
+  Array.from(document.querySelectorAll('input[name="order"]'))
+  .forEach(function (input) {
+    input.addEventListener('change', updateData)
+  })
+
+  var chart = new google.visualization.ColumnChart(container)
+  var nextRender
+  var renderTimer = null
+  window.addEventListener('resize', function () {
+    clearTimeout(renderTimer)
+    renderTimer = setTimeout(doDraw, nextRender - Date.now())
+  })
+  doDraw()
+
+  function doDraw () {
+    nextRender = Date.now() + 1e3
+    chart.draw(data, options)
+  }
+}
+</script>

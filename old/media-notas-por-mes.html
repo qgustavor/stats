@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>Média das notas de animes por mês</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/3.0.3/normalize.min.css">
+<style>
+html, body {
+  background: #fff;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: .1em;
+  bottom: .5em;
+  margin: 0;
+  padding: 0;
+}
+path[fill="#3366cc"] {
+  fill: url(#area-gradient);
+  fill-opacity: 0.5;
+}
+</style>
+
+<script src="https://www.gstatic.com/charts/loader.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tabletop.js/1.4.2/tabletop.min.js"></script>
+<div id="container" class="container">Carregando / Loading </div>
+
+<svg width="0" height="0">
+  <defs>
+    <linearGradient id="area-gradient" x1="0%" y1="0%" x2="0%" y2="20%">
+      <stop offset="0%"   stop-color="#36c"/>
+      <stop offset="100%" stop-color="rgba(51, 102, 204, 0.01)"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<script>
+google.charts.load('current', {'packages': ['corechart']})
+google.charts.setOnLoadCallback(function () {
+  Tabletop.init({
+    key: '1kW8dzToIjyumRM5US4o2dHB8mwBhuOw81KPKGMy6YZE',
+    callback: fetchCallback
+  })
+})
+
+function fetchCallback (sheets, tabletop) {
+  var container = document.getElementById('container')
+  var keys = {
+    assistido: 'Assistido',
+    animes: 'Animes',
+    nome: 'Nome',
+    data: 'Data',
+    episodio: 'Episódio',
+    score: 'Score',
+    episodios: 'Episódios'
+  }
+
+  var animeInfo = sheets[keys.animes].elements
+  var animeNames = animeInfo.map(function (e) {
+    return e[keys.nome]
+  })
+
+  var invervalDataObj = sheets[keys.assistido].elements.reduce(function (acc, e) {
+    var date = new Date(e[keys.data])
+    var name = e[keys.nome]
+
+    date.setHours(0)
+    date.setMinutes(0)
+    date.setSeconds(0)
+    date.setMilliseconds(0)
+    var day = Math.floor(date.valueOf())
+
+    var index = animeNames.indexOf(name)
+    if (index === -1) {
+      console.log("%s episode score isn't defined, ignoring.", name)
+      return acc
+    }
+
+    var info = animeInfo[index]
+    var score = Number(info[keys.score])
+    if (!score || Number(e[keys.episodio]) !== Number(info[keys.episodios])) {
+      return acc
+    }
+
+    if (!acc[day]) acc[day] = {score: 0, count: 0}
+    acc[day].score += score
+    acc[day].count++
+
+    return acc
+  }, {})
+
+  var invervalKeys = Object.keys(invervalDataObj)
+  var invervalData = invervalKeys.map(function (e, i) {
+    var startDate = new Date(+e)
+    var lastDate = new Date(+e)
+
+    startDate.setDate(startDate.getDate() - 1)
+    lastDate.setTime(lastDate.getTime() - 1)
+
+    return {
+      start: startDate,
+      last: lastDate,
+      average: invervalDataObj[e].score / invervalDataObj[e].count
+    }
+  }).reduce(function (state, element) {
+    // Makes a rolling average
+    state.buffer.push(element)
+
+    var timeElapsed = element.last.getTime() - state.buffer[0].start.getTime()
+    if (timeElapsed > 30 * 864e5) {
+      state.results.push([
+        new Date((state.buffer[0].start.getTime() + element.last.getTime()) / 2),
+        Math.round(state.buffer.reduce(function (sum, element) {
+          return sum + element.average
+        }, 0) * 100 / state.buffer.length) / 100
+      ])
+      state.buffer.shift()
+    }
+    return state
+  }, {
+    buffer: [],
+    results: []
+  }).results.slice(1)
+
+  var data = new google.visualization.DataTable()
+  data.addColumn('date', 'Mês')
+  data.addColumn('number', 'Nota média')
+  data.addRows(invervalData)
+
+  var options = {
+    title: 'Média móvel das notas de animes em 30 dias',
+    legend: 'none',
+    chartArea: {
+      left: '3%',
+      top: '5%',
+      width: '97%',
+      height: '90%'
+    }
+  }
+
+  var chart = new google.visualization.AreaChart(container)
+  var nextRender
+  var renderTimer = null
+  window.addEventListener('resize', function () {
+    clearTimeout(renderTimer)
+    renderTimer = setTimeout(doDraw, nextRender - Date.now())
+  })
+  doDraw()
+
+  function doDraw () {
+    nextRender = Date.now() + 1e3
+    chart.draw(data, options)
+  }
+}
+</script>
