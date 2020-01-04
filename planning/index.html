@@ -24,7 +24,7 @@
           }"></div>
         </div>
         <div class="season" v-for="season in seasons"
-          v-handle-intersection="{active: season.loops > 9}"
+          v-handle-intersection="{active: season.loops > 18 && season.labelPosition === 'inside'}"
           :style="{
             top: (season.orderIndex * 25 - 1) + 'px',
             left: (season.start * 25 - 1) + 'px',
