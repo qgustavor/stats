@@ -130,6 +130,16 @@ const app = new Vue({
         name.style.right = Math.max(0, scrollWidth - boundary.right + 30) + 'px'
         name.style.top = boundary.top + 'px'
       }
+      const el = this.$refs.seasonArea
+      el.addEventListener('mousewheel', e => {
+        if (e.ctrlKey) return
+        e.preventDefault()
+        if (e.shiftKey) {
+          el.scrollTop += e.deltaY
+        } else {
+          el.scrollLeft += e.deltaY
+        }
+      })
     }
   }
 })
