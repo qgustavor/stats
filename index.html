@@ -44,12 +44,16 @@ h1 {
 
 <ul>
   <li><a href="planning/">Planejamento de animes</a>
-  <li><a href="old/timeline-anime">Timeline de animes assistidos</a>
-  <li><a href="old/media-notas-por-mes">Nota média de animes por mês</a>
-  <li><a href="old/relatório-semanal-horas">Horas assistidas por semana</a>
 </ul>
+
+<p>As estatísticas antigas precisam ser reescritas pois a API que elas usavam <span id=apimsg></span> desativada em setembro de 2020.
 
 <p><a href="https://qgustavor.github.io/blog/">Visite o blog</a>
 
 <div id="backart" aria-hidden></div>
-<script>backart.textContent = (Math.random() * 10).toFixed(3)</script>
+<script>
+a=()=>{backart.textContent = Math.floor(Math.random() * 100) + '%'}
+a()
+setInterval(a, 5e3)
+apimsg.textContent = Date.now() > 1599e9 ? 'foi' : 'será'
+</script>
