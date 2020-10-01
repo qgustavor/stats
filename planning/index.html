@@ -5,10 +5,36 @@
   <title>Planejamento de Animes</title>
   <script src="https://unpkg.com/vue@2.4.4/dist/vue.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Caveat+Brush&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="app" v-cloak>
+    <div class="fixed-menu">
+      <button @click="sidebar = 1">Recomendar anime</button>
+      <button @click="sidebar = 2">Ajuda</button>
+    </div>
+    <transition name="slide-fade">
+      <div class="sidebar" v-if="sidebar === 1">
+        <h1>Recomendar anime</h1>
+        <p>Qual anime recomenda?</p>
+        <input v-model="recommendedAnime" :disabled="recommendedWorking">
+        <button @click="sendRecommendedAnime" :disabled="recommendedWorking">Enviar recomendação</button><br>
+        <p>{{ recommendedMessage }}</p>
+        <hr><br>
+        <button @click="sidebar = null">Fechar</button>
+      </div>
+    </transition>
+    <transition name="slide-fade">
+      <div class="sidebar" v-if="sidebar === 2">
+        <h1>Ajuda</h1>
+        <p>Este planejamento funciona de forma parecida com um gráfico de Gantt: cada barra representa um anime e está posicionado na ordem que foi ou será assistido.</p>
+        <p>O eixo horizontal representa o tempo e o eixo vertical representa os animes que são assistidos ao mesmo tempo.</p>
+        <p>Os números em cada barra representam o primeiro e último episódios planejados naquele momento. Se uma barra for listrada significa que há um intervalo entre cada episódio. As cores das barras são pseudo-aleatórias, baseadas no nome do anime.</p>
+        <p>Eu tento organizar meu planejamento para reduzir repetições e monotonia. Dessa forma evito otimizar tanto que assistir anime deixa de ser divertido.</p>
+        <button @click="sidebar = null">Fechar</button>
+      </div>
+    </transition>
     <div class="season-area" ref="seasonArea"
       @scroll="handleScroll">
       <div class="season-area-scroller" :style="{height: (lastRow * 25) + 'px'}">
@@ -23,6 +49,18 @@
             height: (lastPushed[1] * 25) + 'px'
           }"></div>
         </div>
+        <div
+          v-for="annotation in annotations"
+          class="annotation"
+          :style="{
+            top: (annotation.y * 25) + 'px',
+            left: (annotation.x * 25) + 'px',
+          }"
+        >{{ annotation.text }}</div>
+        <div class="history-mark" v-for="mark in historyMarks"
+          :title="mark.title"
+          :style="{left: (mark.row * 25) + 'px'}"
+        >{{ mark.date }}</div>
         <div class="season" v-for="season in seasons"
           v-handle-intersection="{active: season.loops > 18 && season.labelPosition === 'inside'}"
           :style="{
@@ -39,8 +77,8 @@
             'name': true,
             ['name-' + season.labelPosition]: true
           }" :style="{
-            textShadow: season.skipPerLoop > 0 && season.labelPosition === 'inside' && 
-              '0,1,2,3,4,5,6,7,8'.replace(/\d+/g, e => 
+            textShadow: season.skipPerLoop > 0 && season.labelPosition === 'inside' &&
+              '0,1,2,3,4,5,6,7,8'.replace(/\d+/g, e =>
                 `${2 * Math.sin(e * Math.PI / 4)}px
                 ${2 * Math.cos(e * Math.PI / 4)}px
                 ${season.bgColorAlt}`

@@ -32,7 +32,13 @@ const app = new Vue({
   el: '.app',
   data: {
     seasons: [],
-    lastPushed: null
+    annotations: [],
+    historyMarks: [],
+    lastPushed: null,
+    sidebar: null,
+    recommendedAnime: '',
+    recommendedMessage: '',
+    recommendedWorking: false
   },
   created: function () {
     this.fetchData()
@@ -57,44 +63,66 @@ const app = new Vue({
     }
   },
   methods: {
-    fetchData (options = {}) {
-      fetch('seasons.json')
-      .then(data => data.json())
-      .then(data => {
-        this.seasons = data.seasons
-        this.organize()
-        setTimeout(this.handleScroll, 20)
+    async fetchData (options = {}) {
+      const data = await fetch('seasons.json').then(data => data.json())
+      this.seasons = data.seasons
+      this.annotations = data.annotations
+      this.historyMarks = data.historyMarks
+      this.organize()
+      this.getLastEntry()
+      setTimeout(this.handleScroll, 20)
+    },
+    async getLastEntryData () {
+      const cacheTimestamp = +localStorage['animestats_cache_timestamp']
+      const cachedData = localStorage['animestats_cache']
+      const maxTimestamp = Date.now() - 8 * 60 * 60 * 1000
+      if (cacheTimestamp && cacheTimestamp > maxTimestamp) {
+        return JSON.parse(cachedData)
+      }
 
-        const lastEntryEpisode = data.lastEntryEpisode
-        const lastEntryId = data.lastEntryId
+      const response = await fetch('https://jsonbox.io/qgustavor_anime_stats/5f75e055c520ed00170f9e61')
+      if (!response.ok) {
+        if (cachedData) return JSON.parse(cachedData)
+        throw Error('Got HTTP error!')
+      }
+      const data = await response.json()
 
-        const lastSeason = data.seasons.filter(e => {
-          return e.animeId === lastEntryId &&
-            e.firstEpisode <= lastEntryEpisode &&
-            e.firstEpisode + e.episodeCount > lastEntryEpisode
-        }).pop()
-        if (!lastSeason) return
+      localStorage['animestats_cache'] = JSON.stringify(data)
+      localStorage['animestats_cache_timestamp'] = Date.now()
+      return data
+    },
+    async getLastEntry () {
+      const data = await this.getLastEntryData()
+      const lastEntryEpisode = Number(data.lastEntryEpisode)
+      const lastEntryId = Number(data.lastEntryId)
+      if (!lastEntryId) return
 
-        this.lastPushed = [
-          lastSeason.start + lastEntryEpisode - 1,
-          lastSeason.orderIndex
-        ]
+      const lastSeason = this.seasons.filter(e => {
+        return e.animeId === lastEntryId &&
+          e.firstEpisode <= lastEntryEpisode &&
+          e.firstEpisode + e.episodeCount > lastEntryEpisode
+      }).pop()
+      if (!lastSeason) return
 
-        setTimeout(() => {
-          const el = this.$refs.seasonArea
-          el.scrollLeft = this.lastPushed[0] * 25 - 150
-          el.addEventListener('wheel', e => {
-            if (e.ctrlKey) return
-            const delta = Math.sign(e.deltaY) * 55
-            e.preventDefault()
-            if (e.shiftKey) {
-              el.scrollTop += delta
-            } else {
-              el.scrollLeft += delta
-            }
-          })
-        }, 20)
-      })
+      this.lastPushed = [
+        lastSeason.start + lastEntryEpisode - 1,
+        lastSeason.orderIndex
+      ]
+
+      setTimeout(() => {
+        const el = this.$refs.seasonArea
+        el.scrollLeft = this.lastPushed[0] * 25 - 150
+        el.addEventListener('wheel', e => {
+          if (e.ctrlKey) return
+          const delta = Math.sign(e.deltaY) * 55
+          e.preventDefault()
+          if (e.shiftKey) {
+            el.scrollTop += delta
+          } else {
+            el.scrollLeft += delta
+          }
+        })
+      }, 20)
     },
     organize () {
       this.seasons.forEach(season => {
@@ -148,6 +176,83 @@ const app = new Vue({
         name.style.right = Math.max(0, scrollWidth - boundary.right + 30) + 'px'
         name.style.top = boundary.top + 'px'
       }
+    },
+    async sendRecommendedAnime () {
+      const query = window.encodeURIComponent(this.recommendedAnime.trim())
+      if (query.length === 0) {
+        this.recommendedMessage = 'Escreva alguma coisa antes de apertar o botão!'
+        return
+      }
+      if (query.length < 2) {
+        this.recommendedMessage = 'Esse anime não tem um nome maior não? Fica difícil pesquisar assim.'
+        return
+      }
+      if (query.length > 50) {
+        this.recommendedMessage = 'O nome desse anime é tão grande assim? Daria para abreviar, por favor?'
+        return
+      }
+
+      const lastRecommendedTimestamp = +localStorage['animestats_recommended_timestamp']
+      const minTimestamp = Date.now() - 30 * 1000
+      if (lastRecommendedTimestamp && lastRecommendedTimestamp > minTimestamp) {
+        this.recommendedMessage = 'Calma aí, vá mais devagar!'
+        return
+      }
+      localStorage['animestats_recommended_timestamp'] = Date.now()
+
+      this.recommendedWorking = true
+      const response = await fetch('https://api.jikan.moe/v3/search/anime?q=' + query).catch(() => null)
+      if (!response || !response.ok) {
+        this.recommendedWorking = false
+        this.recommendedMessage = 'Servidor fora do ar. Tente novamente mais tarde.'
+        return
+      }
+
+      const data = await response.json()
+      const anime = data.results[0]
+      if (!anime) {
+        this.recommendedWorking = false
+        this.recommendedMessage = 'Anime não encontrado. Tente novamente.'
+        return
+      }
+
+      const alreadyInPlan = this.seasons.find(e => e.animeId === anime.mal_id)
+      if (alreadyInPlan) {
+        this.recommendedWorking = false
+        this.recommendedMessage = 'Esse anime já está no planejamento!'
+        return
+      }
+
+      const isBlacklisted = recommendedBlacklist.includes(anime.mal_id)
+      if (!isBlacklisted && anime.rated === 'Rx') {
+        this.recommendedWorking = false
+        this.recommendedMessage = 'Sem sugestões de hentai, por favor.'
+        return
+      }
+
+      if (!isBlacklisted) {
+        const response = await fetch('https://jsonbox.io/qgustavor_anime_stats', {
+          method: 'post',
+          headers: {
+            'content-type': 'application/json'
+          },
+          body: JSON.stringify({
+            name: this.recommendedAnime,
+            id: anime.mal_id
+          })
+        })
+        if (!response.ok) {
+          this.recommendedWorking = false
+          this.recommendedMessage = 'Servidor fora do ar. Tente novamente mais tarde.'
+          return
+        }
+      }
+
+      this.recommendedWorking = false
+      this.recommendedAnime = ''
+      this.sidebar = null
     }
   }
 })
+
+const recommendedBlacklist = [1639]

@@ -13,8 +13,8 @@ body, .app, .season-area {
 
 .season-area {
   background-image:
-    linear-gradient(90deg, transparent, transparent 24px, #CCC 24px, #CCC 25px),
-    linear-gradient(0deg, white, white 24px, #CCC 24px, #CCC 25px);
+    linear-gradient(90deg, transparent, transparent 24px, #EEE 24px, #EEE 25px),
+    linear-gradient(0deg, white, white 24px, #EEE 24px, #EEE 25px);
   background-position: 0 -1px;
   background-attachment: local;
   background-size: 25px 25px;
@@ -130,4 +130,73 @@ body, .app, .season-area {
 .last-pushed_right::after {
   left: 25px;
 }
-  
+
+.annotation {
+	position: absolute;
+	height: 18px;
+	background-color: yellow;
+	padding: 3px 6px;
+	white-space: nowrap;
+	font-family: Source Code Pro, Consolas;
+  box-shadow: 3px 3px rgba(0, 0, 0, 0.2);
+}
+
+.history-mark {
+	position: absolute;
+	top: 24px;
+	background: black;
+	width: 51px;
+	text-align: center;
+	color: #e0e006;
+	box-sizing: border-box;
+	text-transform: uppercase;
+	border: 2px solid #7e7e7e;
+	margin: 0 -1px;
+	font-weight: bold;
+	font-family: "Caveat Brush", Comic Neue, Comic Sans MS, cursive;
+	text-shadow: 2px 2px #860e00, 1px 1px #b67e00;
+  font-size: 1.4rem;
+  height: 25px;
+  overflow: hidden;
+  padding: 1px;
+  line-height: 18px;
+}
+
+.fixed-menu {
+  position: fixed;
+  z-index: 10;
+  right: 20px;
+  top: 3px;
+}
+
+.sidebar {
+  position: fixed;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 20em;
+  background: #f4f4f4;
+  box-shadow: 0 0 0.5em rgba(0, 0, 0, 0.5);
+  z-index: 15;
+  padding: 1em;
+  overflow-y: auto;
+}
+
+.slide-fade-enter-active {
+  transition: all .3s ease;
+}
+.slide-fade-leave-active {
+  transition: all .3s cubic-bezier(1.0, 0.5, 0.8, 1.0);
+}
+.slide-fade-enter, .slide-fade-leave-to {
+  transform: translateX(10px);
+  opacity: 0;
+}
+
+.sidebar label,
+.sidebar input,
+.sidebar select,
+.sidebar textarea {
+  display: block;
+  width: 100%;
+}
