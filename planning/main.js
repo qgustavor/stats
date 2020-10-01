@@ -154,11 +154,14 @@ const app = new Vue({
       if (hasSpaceAtRight) return 'right'
 
       const hasSpaceAbove = !this.seasons.find(e =>
-        e !== season && e.loops < season.textSize && e.orderIndex === season.orderIndex &&
+        e !== season &&
+        e.loops < e.textSize &&
+        e.orderIndex === season.orderIndex &&
         e.start + season.textSize > season.start &&
         e.start + e.loops <= season.start
       ) && !this.seasons.find(e =>
-        e !== season && e.orderIndex === season.orderIndex - 1 &&
+        e !== season &&
+        e.orderIndex === season.orderIndex - 1 &&
         !(e.start > season.start + season.loops || e.start + e.loops < season.start)
       )
       if (hasSpaceAbove) return 'above'
