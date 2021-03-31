@@ -80,6 +80,9 @@ const app = new Vue({
         return JSON.parse(cachedData)
       }
 
+      // disabled
+      return
+
       const response = await fetch('https://jsonbox.io/qgustavor_anime_stats/5f9dc9b1abd5b40017a9ac47')
       if (!response.ok) {
         if (cachedData) return JSON.parse(cachedData)
