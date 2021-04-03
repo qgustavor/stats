@@ -80,7 +80,7 @@ const app = new Vue({
         return JSON.parse(cachedData)
       }
 
-      const response = await fetch('https://api.jsonbin.io/b/6068ed6ac4f0ae7e081b3cd6')
+      const response = await fetch('https://api.jsonbin.io/b/6068ed6ac4f0ae7e081b3cd6/latest')
       if (!response.ok) {
         if (cachedData) return JSON.parse(cachedData)
         throw Error('Got HTTP error!')
