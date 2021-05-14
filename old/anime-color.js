@@ -24,7 +24,7 @@ function getAnimeColor (name, alternative, sheets) {
         ? animeData[i][keys.color2]
         : animeData[i][keys.color1]
 
-        if (color) return color
+        if (color && tinycolor(color).isValid()) return color
         break
       }
     }
