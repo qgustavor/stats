@@ -105,7 +105,7 @@ const app = new Vue({
       if (!lastSeason) return
 
       this.lastPushed = [
-        lastSeason.start + lastEntryEpisode - 1,
+        lastSeason.start + lastEntryEpisode - lastSeason.firstEpisode,
         lastSeason.orderIndex
       ]
 
