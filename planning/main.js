@@ -141,6 +141,19 @@ const app = new Vue({
 
       this.seasons.forEach(season => {
         season.labelPosition = this.getLabelPosition(season)
+        const textShadow = season.skipPerLoop > 0 &&
+          season.labelPosition === 'inside' &&
+          '0,1,2,3,4,5,6,7,8'.replace(/\d+/g, e =>
+            `${2 * Math.sin(e * Math.PI / 4)}px
+            ${2 * Math.cos(e * Math.PI / 4)}px
+            ${season.bgColorAlt}`
+          )
+        season.labelStyle = (season.labelY > 0
+          ? 'top:-' + (season.labelY * 25) + 'px'
+          : season.labelY < 0
+            ? 'bottom:' + (season.labelY * 25) + 'px'
+            : ''
+        ) + (textShadow ? ';text-shadow:' + textShadow : '')
       })
     },
     getLabelPosition (season) {
