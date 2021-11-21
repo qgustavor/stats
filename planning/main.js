@@ -157,6 +157,7 @@ const app = new Vue({
       })
     },
     getLabelPosition (season) {
+      if (season.labelY) return season.labelY > 0 ? 'above' : 'below'
       if (season.loops > season.textSize) return 'inside'
 
       const hasSpaceAtRight = !this.seasons.find(e =>
