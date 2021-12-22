@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
-<title>Gráfico das horas assistidas por semana</title>
+<title>Gráfico das horas assistidas por mês</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/3.0.3/normalize.min.css">
 <style>
   html,
@@ -50,7 +50,7 @@ function fetchCallback (sheets, tabletop) {
     var nome = e[keys.nome]
     var epNum = lastEp[nome] ? (+e[keys.episodio] - lastEp[nome]) : 1
 
-    date.setDate(date.getDate() - date.getDay() + 1)
+    date.setDate(0)
     date.setHours(0)
     date.setMinutes(0)
     date.setSeconds(0)
@@ -78,19 +78,17 @@ function fetchCallback (sheets, tabletop) {
     var startDate = new Date(+e)
     var lastDate = new Date(+e)
 
-    startDate.setDate(startDate.getDate() - 1)
-    lastDate.setDate(lastDate.getDate() + 6)
+    startDate.setDate(0)
+    lastDate.setMonth(lastDate.getMonth() + 1)
+    lastDate.setDate(0)
     lastDate.setTime(lastDate.getTime() - 1)
 
     return [
-      formatLocalDate(startDate).substr(0, 10) + '...' + formatLocalDate(lastDate).substr(8, 2),
+      formatLocalDate(startDate).substr(0, 7),
       Math.round(invervalDataObj[e] * 100 / 60) / 100,
       lastDate < now,
       lastDate < now ? null
-        : Math.round((invervalDataObj[e] / 60) * (lastDate - startDate) / (now - startDate)),
-      i > 3 && i < invervalKeys.length - 4 ? Math.round(invervalKeys.slice(i - 3, i + 4).reduce(function (sum, e) {
-        return sum + invervalDataObj[e] / 60
-      }, 0) * 100 / 7) / 100 : null
+        : Math.round((invervalDataObj[e] / 60) * (lastDate - startDate) / (now - startDate))
     ]
   })
 
@@ -102,7 +100,6 @@ function fetchCallback (sheets, tabletop) {
     role: 'certainty'
   })
   data.addColumn('number', 'Previsão')
-  data.addColumn('number', 'Média de sete semanas')
   data.addRows(invervalData.slice(1))
 
   var options = {
@@ -114,12 +111,6 @@ function fetchCallback (sheets, tabletop) {
       top: 0,
       width: '97%',
       height: '100%'
-    },
-    series: {
-      2: {
-        curveType: 'function',
-        lineDashStyle: [2, 3]
-      }
     }
   }
   var chart = new google.visualization.LineChart(container)

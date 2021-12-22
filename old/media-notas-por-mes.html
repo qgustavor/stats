@@ -26,7 +26,6 @@ path[fill="#3366cc"] {
 </style>
 
 <script src="https://www.gstatic.com/charts/loader.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/tabletop.js/1.4.2/tabletop.min.js"></script>
 <div id="container" class="container">Carregando / Loading</div>
 
 <svg width="0" height="0">
@@ -41,10 +40,7 @@ path[fill="#3366cc"] {
 <script>
 google.charts.load('current', {'packages': ['corechart']})
 google.charts.setOnLoadCallback(function () {
-  Tabletop.init({
-    key: '1kW8dzToIjyumRM5US4o2dHB8mwBhuOw81KPKGMy6YZE',
-    callback: fetchCallback
-  })
+  fetch('spreadsheet.json').then(e => e.json()).then(fetchCallback)
 })
 
 function fetchCallback (sheets, tabletop) {
@@ -59,12 +55,12 @@ function fetchCallback (sheets, tabletop) {
     episodios: 'Episódios'
   }
 
-  var animeInfo = sheets[keys.animes].elements
+  var animeInfo = sheets[keys.animes]
   var animeNames = animeInfo.map(function (e) {
     return e[keys.nome]
   })
 
-  var invervalDataObj = sheets[keys.assistido].elements.reduce(function (acc, e) {
+  var invervalDataObj = sheets[keys.assistido].reduce(function (acc, e) {
     var date = new Date(e[keys.data])
     var name = e[keys.nome]
 

@@ -19,7 +19,6 @@ html, body {
 </style>
 
 <script src="https://www.gstatic.com/charts/loader.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/tabletop.js/1.4.2/tabletop.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tinycolor/1.1.2/tinycolor.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.15.1/moment.min.js"></script>
 <script src="anime-color.js"></script>
@@ -28,10 +27,7 @@ html, body {
 <script>
 google.charts.load('current', {'packages': ['corechart']})
 google.charts.setOnLoadCallback(function () {
-  Tabletop.init({
-    key: '1kW8dzToIjyumRM5US4o2dHB8mwBhuOw81KPKGMy6YZE',
-    callback: fetchCallback
-  })
+  fetch('spreadsheet.json').then(e => e.json()).then(fetchCallback)
 })
 
 function fetchCallback (sheets, tabletop) {
@@ -56,8 +52,8 @@ function fetchCallback (sheets, tabletop) {
     fim: 'Fim'
   }
 
-  var assistido = sheets[keys.assistido].elements
-  var animes = sheets[keys.animes].elements
+  var assistido = sheets[keys.assistido]
+  var animes = sheets[keys.animes]
 
   var animeDataNames = animes.map(function (anime) {
     return anime[keys.nome]

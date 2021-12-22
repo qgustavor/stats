@@ -17,7 +17,7 @@ function getAnimeColor (name, alternative, sheets) {
       color2: 'Cor 2'
     }
 
-    var animeData = sheets[keys.anime].elements
+    var animeData = sheets[keys.anime]
     for (var i = 0; i < animeData.length; i++) {
       if (animeData[i][keys.name] === name) {
         var color = alternative

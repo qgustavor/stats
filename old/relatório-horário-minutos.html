@@ -21,7 +21,7 @@ html, body {
 
 .day-cell {
   width: 12.5%;  width: calc(100% / 8);
-  height: 8.33%; height: calc(100% / 12);
+  height: 8.33%; height: calc(100% / 25);
   overflow: hidden;
   float: left;
 }
@@ -33,7 +33,7 @@ html, body {
 
 .day-count {
   text-align: center;
-  font: 1.5em sans-serif;
+  font: 1em sans-serif;
 }
 
 .day-list {
@@ -78,12 +78,13 @@ html, body {
 }
 </style>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.1.0/chroma.min.js" integrity="sha512-yocoLferfPbcwpCMr8v/B0AB4SWpJlouBwgE0D3ZHaiP1nuu5djZclFEIj9znuqghaZ3tdCMRrreLoM8km+jIQ==" crossorigin="anonymous"></script>
 <div id="container" class="container">Carregando / Loading</div>
 
 <script>
 fetch('spreadsheet.json').then(e => e.json()).then(fetchCallback)
 
-function fetchCallback (sheets, tabletop) {
+function fetchCallback (sheets) {
   var container = document.getElementById('container')
   var timeInterval = 864e5 * 7
   var isoFixDelta = 3456e5 - 864e5
@@ -92,10 +93,19 @@ function fetchCallback (sheets, tabletop) {
     assistido: 'Assistido',
     nome: 'Nome',
     data: 'Data',
-    episodio: 'Episódio'
+    episodio: 'Episódio',
+    animes: 'Animes',
+    duracao: 'Duração'
   }
+  var animeInfo = sheets[keys.animes]
+  var animeNames = animeInfo.map(function (e) {
+    return e[keys.nome]
+  })
 
-  var minDate = new Date('2014-07-29T11:45:21.000Z').valueOf()
+  // var minDate = new Date('2014-07-29T11:45:21.000Z').valueOf()
+  var minDate = new Date()
+  minDate.setFullYear(minDate.getFullYear() - 2)
+  minDate = minDate.valueOf()
   var intervalData = []
   for (var i = 0; i < 8 * 24; i++) {
     intervalData[i] = {
@@ -105,10 +115,13 @@ function fetchCallback (sheets, tabletop) {
   }
   invervalData = sheets[keys.assistido]
     .reduce(function (acc, e) {
-      var date = new Date(e[keys.data]),
-        slot = date.getDay() + date.getHours() * 8 + 1,
-        nome = e[keys.nome],
-        epNum = lastEp[nome]
+      var nome = e[keys.nome]
+      var index = animeNames.indexOf(nome)
+      var episodeLength = index === -1 ? null : (Number(animeInfo[index][keys.duracao]) || null)
+      var date = new Date(e[keys.data])
+      date.setMinutes(date.getMinutes() - episodeLength)
+      var slot = date.getDay() + date.getHours() * 8 + 1
+      var epNum = lastEp[nome]
         ? (+e[keys.episodio] - lastEp[nome])
         : 1
       if (date < minDate) {
@@ -117,10 +130,14 @@ function fetchCallback (sheets, tabletop) {
       // Handle rewatching as just one episode
       if (epNum <= 0) epNum = 1
       lastEp[nome] = +e[keys.episodio]
-      acc[slot].count += epNum
+      acc[slot].count += epNum * episodeLength
       acc[slot].list[nome] = true
       return acc
     }, intervalData)
+    
+  invervalData.forEach(e => {
+    e.count = Math.round(e.count)
+  })
 
   var maxValue = Math.max.apply(
     null,
@@ -130,7 +147,9 @@ function fetchCallback (sheets, tabletop) {
   )
 
   var weekDays = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
-  container.innerHTML = '<div class="day-cell table-title"></div>' + weekDays.map(function (day) {
+  var colorScale = chroma.scale('YlGnBu')
+  
+  container.innerHTML = '<div class="day-cell table-title" style="text-align: center;font-size: 0.7em;color:cyan;">Heatmap de<br>minutos assistidos</div>' + weekDays.map(function (day) {
     return '<div class="day-cell table-title"><div class="day-count">' + day + '</div></div>'
   }).join('') +
   invervalData
@@ -139,9 +158,9 @@ function fetchCallback (sheets, tabletop) {
         return '<div class="day-cell table-title"><div class="day-count">' +
           ('0' + Math.floor(n / 8)).substr(-2) + ':00</div></div>'
       }
-      return '<div tabindex="0" class="day-cell" style="background-color:' + heatMapColorforValue(day.count / maxValue) + ';">' +
+      return '<div tabindex="0" class="day-cell" style="background-color:' + colorScale(day.count / maxValue).brighten().hex() + ';">' +
         '<div class="day-count">' + day.count + '</div>' +
-        '<ul class="day-list" style="background-color:' + heatMapColorforValue(day.count / maxValue, 80) + ';"><li>' + ['<b>' +
+        '<ul class="day-list" style="background-color:' + colorScale(day.count / maxValue).brighten(3).hex() + ';"><li>' + ['<b>' +
           weekDays[n % 8 - 1] + ' - ' +
           ('0' + Math.floor(n / 8)).substr(-2) + ':00 → ' + day.count + ' episódio' + (day.count === 1 ? '' : 's') + '</b>'
         ]
@@ -151,8 +170,4 @@ function fetchCallback (sheets, tabletop) {
     }).join('')
 }
 
-function heatMapColorforValue (value, luminosity) {
-  var h = (1.0 - value) * 240
-  return 'hsl(' + h + ', 66%, ' + (luminosity || 70) + '%)'
-}
 </script>

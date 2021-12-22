@@ -31,7 +31,6 @@ html, body {
 </style>
 
 <script src="https://www.gstatic.com/charts/loader.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/tabletop.js/1.4.2/tabletop.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tinycolor/1.1.2/tinycolor.min.js"></script>
 <div id="container" class="container">Carregando / Loading</div>
 <form class="order-control">
@@ -43,10 +42,7 @@ html, body {
 <script>
 google.charts.load('current', {'packages': ['corechart']})
 google.charts.setOnLoadCallback(function () {
-  Tabletop.init({
-    key: '1kW8dzToIjyumRM5US4o2dHB8mwBhuOw81KPKGMy6YZE',
-    callback: fetchCallback
-  })
+  fetch('spreadsheet.json').then(e => e.json()).then(fetchCallback)
 })
 
 var orderInput = document.querySelector('input[name="order"][value="episodes"]')
@@ -61,12 +57,12 @@ function getData (sheets, tabletop) {
     generos: 'Gêneros'
   }
 
-  var animeInfo = sheets[keys.animes].elements
+  var animeInfo = sheets[keys.animes]
   var animeNames = animeInfo.map(function (e) {
     return e[keys.nome]
   })
 
-  var invervalDataObj = sheets[keys.assistido].elements.reduce(function (acc, e) {
+  var invervalDataObj = sheets[keys.assistido].reduce(function (acc, e) {
     var date = new Date(e[keys.data])
     var name = e[keys.nome]
 
