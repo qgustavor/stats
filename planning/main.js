@@ -93,7 +93,7 @@ const app = new Vue({
     },
     async getLastEntry () {
       const data = await this.getLastEntryData()
-      const lastEntryEpisode = Number(data.lastEntryEpisode)
+      let lastEntryEpisode = Number(data.lastEntryEpisode)
       const lastEntryId = Number(data.lastEntryId)
       if (!lastEntryId) return
 
@@ -103,6 +103,10 @@ const app = new Vue({
           e.firstEpisode + e.episodeCount > lastEntryEpisode
       }).pop()
       if (!lastSeason) return
+
+      if (lastSeason.episodesPerLoop) {
+        lastEntryEpisode = Math.floor(lastEntryEpisode / lastSeason.episodesPerLoop)
+      }
 
       this.lastPushed = [
         lastSeason.start + (lastEntryEpisode - lastSeason.firstEpisode) * ((lastSeason.skipPerLoop || 0) + 1),
