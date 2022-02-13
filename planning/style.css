@@ -60,8 +60,13 @@ body, .app, .season-area {
 }
 
 .season .name-right { right: -5px; }
-.season .name-above { top: -25px; }
-.season .name-below { bottom: -25px; }
+.season .name-above { top: -24px; }
+.season .name-below { bottom: -26px; }
+
+@media screen and (-moz-appearance:meterbar) {
+  .season .name-above { top: -25px; }
+  .season .name-below { bottom: -25px; }
+}
 
 .season .name-right > a,
 .season .name-above > a,

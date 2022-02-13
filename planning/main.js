@@ -143,6 +143,7 @@ const app = new Vue({
         season.textSize = Math.round(season.anime.length / 2.7)
       })
 
+      const deltaY = CSS && CSS.supports('-moz-appearance:meterbar') ? 0 : 1
       this.seasons.forEach(season => {
         season.labelPosition = this.getLabelPosition(season)
         const textShadow = season.skipPerLoop > 0 &&
@@ -153,9 +154,9 @@ const app = new Vue({
             ${season.bgColorAlt}`
           )
         season.labelStyle = (season.labelY > 0
-          ? 'top:-' + (season.labelY * 25) + 'px'
+          ? 'top:-' + (season.labelY * 25 + deltaY) + 'px'
           : season.labelY < 0
-            ? 'bottom:' + (season.labelY * 25) + 'px'
+            ? 'bottom:' + (season.labelY * 25 - deltaY) + 'px'
             : ''
         ) + (textShadow ? ';text-shadow:' + textShadow : '')
       })
