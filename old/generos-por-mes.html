@@ -139,14 +139,14 @@ function getData (sheets, tabletop) {
       : genreList
 
     return [date].concat(list.reduce(function (row, genre, index) {
+      var percentage = (genres[genre] || []).length / total
+      if (percentage < 0.025) percentage = 0
       return [
-        (genres[genre] || []).length / total,
+        percentage,
         formatText(genre),
         getGenreColor(genre)
       ].concat(row)
     }, []))
-  }).filter(function (e) {
-    return e
   }).slice(2)
 
   var data = new google.visualization.DataTable()
@@ -182,9 +182,9 @@ function fetchCallback (sheets, tabletop) {
   }
   
   Array.from(document.querySelectorAll('input[name="order"]'))
-  .forEach(function (input) {
-    input.addEventListener('change', updateData)
-  })
+    .forEach(function (input) {
+      input.addEventListener('change', updateData)
+    })
 
   var chart = new google.visualization.ColumnChart(container)
   var nextRender
