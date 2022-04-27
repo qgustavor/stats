@@ -11,17 +11,27 @@
 <body>
   <div class="app" v-cloak>
     <div class="fixed-menu">
-      <!-- <button @click="sidebar = 1">Recomendar anime</button> -->
+      <select v-model="animelist" @change="updateAnimeUrls">
+        <option value="anilist">AniList</option>
+        <option value="mal">MyAnimeList</option>
+      </select>
+      <button @click="sidebar = 1">Recomendar anime</button>
       <button @click="sidebar = 2">Ajuda</button>
     </div>
     <transition name="slide-fade">
       <div class="sidebar" v-if="sidebar === 1">
-        <h1>Recomendar anime</h1>
-        <p>Qual anime recomenda?</p>
-        <input v-model="recommendedAnime" :disabled="recommendedWorking">
-        <button @click="sendRecommendedAnime" :disabled="recommendedWorking">Enviar recomendação</button><br>
+        <h1>Qual anime recomenda?</h1>
+        <input v-model="recommendedAnime" :disabled="!reccomendationEndpoint || recommendedWorking">
+        <button @click="sendRecommendedAnime" :disabled="!reccomendationEndpoint || recommendedWorking">Enviar recomendação</button><br>
         <p>{{ recommendedMessage }}</p>
-        <hr><br>
+        <hr>
+        <p v-if="!reccomendationEndpoint">
+          Essa função está desativada temporariamente por problemas técnicos.<br>
+          <a href="https://anilist.co/user/qgustavor/">Deixe uma mensagem no AniList.</a>
+        </p>
+        <p v-else>
+          Você pode também <a href="https://anilist.co/user/qgustavor/">deixar uma mensagem no AniList.</a>
+        </p>
         <button @click="sidebar = null">Fechar</button>
       </div>
     </transition>
@@ -77,9 +87,7 @@
             'name': true,
             ['name-' + season.labelPosition]: true
           }"  :style="season.labelStyle">
-            <a v-if="season.anilistId" target="_blank"
-              :href="'https://anilist.co/anime/' + season.anilistId"
-            >{{ season.anime }}</a>
+            <a v-if="season.url" target="_blank" :href="season.url">{{ season.anime }}</a>
             <span v-else>{{ season.anime }}</span>
           </span>
           <span v-if="season.loops > 1">{{ season.episodeCount }}</span>

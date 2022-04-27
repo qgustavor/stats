@@ -13,8 +13,8 @@ body, .app, .season-area {
 
 .season-area {
   background-image:
-    linear-gradient(90deg, transparent, transparent 24px, #EEE 24px, #EEE 25px),
-    linear-gradient(0deg, white, white 24px, #EEE 24px, #EEE 25px);
+    linear-gradient(90deg, transparent, transparent 23px, #EEE 24px, #EEE 25px),
+    linear-gradient(0deg, white, white 23px, #EEE 24px, #EEE 25px);
   background-position: 0 -1px;
   background-attachment: local;
   background-size: 25px 25px;
@@ -60,13 +60,8 @@ body, .app, .season-area {
 }
 
 .season .name-right { right: -5px; }
-.season .name-above { top: -24px; }
-.season .name-below { bottom: -26px; }
-
-@media screen and (-moz-appearance:meterbar) {
-  .season .name-above { top: -25px; }
-  .season .name-below { bottom: -25px; }
-}
+.season .name-above { top: -25px; }
+.season .name-below { bottom: -25px; }
 
 .season .name-right > a,
 .season .name-above > a,

@@ -19,7 +19,6 @@ const observer = window.IntersectionObserver ? new IntersectionObserver(entries 
       trackedSections.add(entry.target)
     } else {
       trackedSections.delete(entry.target)
-      entry.target.querySelector('.name').removeAttribute('style')
     }
   }
   isFirstUpdate = false
@@ -38,7 +37,9 @@ const app = new Vue({
     sidebar: null,
     recommendedAnime: '',
     recommendedMessage: '',
-    recommendedWorking: false
+    recommendedWorking: false,
+    animelist: 'anilist',
+    reccomendationEndpoint: 'https://krat.es/15ab70e37a257b58a094'
   },
   created: function () {
     this.fetchData()
@@ -146,13 +147,14 @@ const app = new Vue({
       const deltaY = CSS && CSS.supports('-moz-appearance:meterbar') ? 0 : 1
       this.seasons.forEach(season => {
         season.labelPosition = this.getLabelPosition(season)
-        const textShadow = season.skipPerLoop > 0 &&
-          season.labelPosition === 'inside' &&
-          '0,1,2,3,4,5,6,7,8'.replace(/\d+/g, e =>
-            `${2 * Math.sin(e * Math.PI / 4)}px
-            ${2 * Math.cos(e * Math.PI / 4)}px
-            ${season.bgColorAlt}`
-          )
+        let textShadow = ''
+        if (season.skipPerLoop > 0 && season.labelPosition === 'inside') {
+          for (let i = 0; i < 16; i++) {
+            const d = Math.floor(i / 8) + 2
+            textShadow += `,${Math.round(d * Math.sin(i * Math.PI / 4))}px ${Math.round(d * Math.cos(i * Math.PI / 4))}px ${season.bgColorAlt}`
+          }
+          textShadow = textShadow.slice(1)
+        }
         season.labelStyle = (season.labelY > 0
           ? 'top:-' + (season.labelY * 25 + deltaY) + 'px'
           : season.labelY < 0
@@ -160,6 +162,8 @@ const app = new Vue({
             : ''
         ) + (textShadow ? ';text-shadow:' + textShadow : '')
       })
+      
+      this.updateAnimeUrls()
     },
     getLabelPosition (season) {
       if (season.labelY) return season.labelY > 0 ? 'above' : 'below'
@@ -223,7 +227,7 @@ const app = new Vue({
       localStorage['animestats_recommended_timestamp'] = Date.now()
 
       this.recommendedWorking = true
-      const response = await fetch('https://api.jikan.moe/v3/search/anime?q=' + query).catch(() => null)
+      const response = await fetch('https://api.jikan.moe/v4/anime?q=' + query).catch(() => null)
       if (!response || !response.ok) {
         this.recommendedWorking = false
         this.recommendedMessage = 'Servidor fora do ar. Tente novamente mais tarde.'
@@ -231,7 +235,7 @@ const app = new Vue({
       }
 
       const data = await response.json()
-      const anime = data.results[0]
+      const anime = data.data[0]
       if (!anime) {
         this.recommendedWorking = false
         this.recommendedMessage = 'Anime não encontrado. Tente novamente.'
@@ -246,14 +250,14 @@ const app = new Vue({
       }
 
       const isBlacklisted = recommendedBlacklist.includes(anime.mal_id)
-      if (!isBlacklisted && anime.rated === 'Rx') {
+      if (!isBlacklisted && anime.rating && anime.rating.includes('Hentai')) {
         this.recommendedWorking = false
         this.recommendedMessage = 'Sem sugestões de hentai, por favor.'
         return
       }
 
       if (!isBlacklisted) {
-        const response = await fetch('https://jsonbox.io/qgustavor_anime_stats', {
+        const response = await fetch(this.reccomendationEndpoint, {
           method: 'post',
           headers: {
             'content-type': 'application/json'
@@ -273,6 +277,26 @@ const app = new Vue({
       this.recommendedWorking = false
       this.recommendedAnime = ''
       this.sidebar = null
+    },
+    updateAnimeUrls () {
+      for (const season of this.seasons) {
+        season.url = this.getAnimeUrl(season)
+      }
+    },
+    getAnimeUrl (season) {
+      if (this.animelist === 'anilist' && season.anilistId) {
+        return 'https://anilist.co/anime/' + season.anilistId
+      }
+      if (!season.animeId) return
+      if (typeof season.animeId === 'string') {
+        if (season.animeId.startsWith('MDL-')) {
+          return 'https://mydramalist.com/' + season.animeId.slice(4)
+        }
+        if (season.animeId.startsWith('KITSU-')) {
+          return 'https://kitsu.io/anime/' + season.animeId.slice(6)
+        }
+      }
+      return 'https://myanimelist.net/anime/' + season.animeId
     }
   }
 })
