@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="app" v-cloak>
+  <div class="app" v-cloak :class="{ isGecko }">
     <div class="fixed-menu">
       <select v-model="animelist" @change="updateAnimeUrls">
         <option value="anilist">AniList</option>

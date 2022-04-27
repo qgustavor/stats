@@ -39,7 +39,8 @@ const app = new Vue({
     recommendedMessage: '',
     recommendedWorking: false,
     animelist: 'anilist',
-    reccomendationEndpoint: 'https://krat.es/15ab70e37a257b58a094'
+    reccomendationEndpoint: 'https://krat.es/15ab70e37a257b58a094',
+    isGecko: navigator.userAgent.includes('Gecko/')
   },
   created: function () {
     this.fetchData()
@@ -144,7 +145,7 @@ const app = new Vue({
         season.textSize = Math.round(season.anime.length / 2.7)
       })
 
-      const deltaY = CSS && CSS.supports('-moz-appearance:meterbar') ? 0 : 1
+      const deltaY = this.isGecko ? 0 : 1
       this.seasons.forEach(season => {
         season.labelPosition = this.getLabelPosition(season)
         let textShadow = ''
@@ -156,7 +157,7 @@ const app = new Vue({
           textShadow = textShadow.slice(1)
         }
         season.labelStyle = (season.labelY > 0
-          ? 'top:-' + (season.labelY * 25 + deltaY) + 'px'
+          ? 'top:-' + (season.labelY * 25 - deltaY) + 'px'
           : season.labelY < 0
             ? 'bottom:' + (season.labelY * 25 - deltaY) + 'px'
             : ''
