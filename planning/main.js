@@ -102,7 +102,7 @@ const app = new Vue({
       const lastSeason = this.seasons.filter(e => {
         return e.animeId === lastEntryId &&
           e.firstEpisode <= lastEntryEpisode &&
-          e.firstEpisode + e.episodeCount > lastEntryEpisode
+          e.episodeCount >= lastEntryEpisode
       }).pop()
       if (!lastSeason) return
 
@@ -111,7 +111,8 @@ const app = new Vue({
       }
 
       this.lastPushed = [
-        lastSeason.start + (lastEntryEpisode - lastSeason.firstEpisode) * ((lastSeason.skipPerLoop || 0) + 1),
+        lastSeason.start + (lastEntryEpisode - lastSeason.firstEpisode) *
+          ((lastSeason.skipPerLoop || 0) + 1),
         lastSeason.orderIndex
       ]
 
