@@ -71,7 +71,8 @@ const app = new Vue({
       this.annotations = data.annotations
       this.historyMarks = data.historyMarks
       this.organize()
-      this.getLastEntry()
+      const baseScrollPos = this.getLastEntry()
+      this.setUpScrolling(baseScrollPos)
       setTimeout(this.handleScroll, 20)
     },
     async getLastEntryData () {
@@ -82,7 +83,7 @@ const app = new Vue({
         return JSON.parse(cachedData)
       }
 
-      const response = await fetch('https://api.jsonbin.io/b/6068ed6ac4f0ae7e081b3cd6/latest')
+      const response = await fetch('https://api.jsonbin.io/v3/b/6068ed6ac4f0ae7e081b3cd6/latest')
       if (!response.ok) {
         if (cachedData) return JSON.parse(cachedData)
         throw Error('Got HTTP error!')
@@ -95,8 +96,8 @@ const app = new Vue({
     },
     async getLastEntry () {
       const data = await this.getLastEntryData()
-      let lastEntryEpisode = Number(data.lastEntryEpisode)
-      const lastEntryId = Number(data.lastEntryId)
+      let lastEntryEpisode = Number(data.record.lastEntryEpisode)
+      const lastEntryId = Number(data.record.lastEntryId)
       if (!lastEntryId) return
 
       const lastSeason = this.seasons.filter(e => {
@@ -116,9 +117,12 @@ const app = new Vue({
         lastSeason.orderIndex
       ]
 
+      return this.lastPushed[0] * 25 - 150
+    },
+    setUpScrolling (baseScroll) {
       setTimeout(() => {
         const el = this.$refs.seasonArea
-        el.scrollLeft = this.lastPushed[0] * 25 - 150
+        if (baseScroll) el.scrollLeft = baseScroll
         el.addEventListener('wheel', e => {
           if (e.ctrlKey) return
           const delta = Math.sign(e.deltaY) * 55
