@@ -71,7 +71,7 @@ const app = new Vue({
       this.annotations = data.annotations
       this.historyMarks = data.historyMarks
       this.organize()
-      const baseScrollPos = this.getLastEntry()
+      const baseScrollPos = await this.getLastEntry()
       this.setUpScrolling(baseScrollPos)
       setTimeout(this.handleScroll, 20)
     },
