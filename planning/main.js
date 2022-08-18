@@ -77,6 +77,9 @@ const app = new Vue({
       const baseScrollPos = await this.getLastEntry()
       this.setUpScrolling(baseScrollPos)
       setTimeout(this.handleScroll, 20)
+      for (const genre of this.genres) {
+        genre.textColor = tinycolor(genre.color).getLuminance() > 0.5 ? 'black' : 'white'
+      }
     },
     async getLastEntryData () {
       const cacheTimestamp = +localStorage['animestats_cache_timestamp']
@@ -140,11 +143,14 @@ const app = new Vue({
     },
     organize () {
       this.seasons.forEach(season => {
+        const mainGenre = season.genres
+          ? this.genres.find(e => season.genres.includes(e.id))
+          : null
+
         let baseColor
         if (this.colorMode === 'name') {
           baseColor = getAnimeColor(season.anime)
         } else {
-          const mainGenre = season.genres ? this.genres.find(e => season.genres.includes(e.id)) : null
           baseColor = tinycolor(mainGenre ? mainGenre.color : 'gray')
         }
 
@@ -153,7 +159,12 @@ const app = new Vue({
         season.bgColorAlt = tinycolor.mix('white', baseColor, 25).toString()
 
         if (season.genres) {
-          season.genreNames = season.genres.map(id => this.genres.find(e => e.id === id).name).join(', ') || 'Gêneros desconhecidos'
+          season.genreNames = this.genres
+            .filter(e => season.genres.includes(e.id))
+            .map(e => e.name)
+            .join(', ') || 'Gêneros desconhecidos'
+        } else {
+          season.genreNames = 'Isso não é um anime ou não está cadastrado no AniList'
         }
 
         if (!season.skipPerLoop) season.skipPerLoop = 0

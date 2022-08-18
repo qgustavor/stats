@@ -42,11 +42,18 @@
     <transition name="slide-fade">
       <div class="sidebar" v-if="sidebar === 2">
         <h1>Ajuda</h1>
+        <button @click="sidebar = null">Fechar ajuda</button>
         <p>Este planejamento funciona de forma parecida com um gráfico de Gantt: cada barra representa um anime e está posicionado na ordem que foi ou será assistido.</p>
         <p>O eixo horizontal representa o tempo e o eixo vertical representa os animes que são assistidos ao mesmo tempo.</p>
         <p>Os números em cada barra representam o primeiro e último episódios planejados naquele momento. Se uma barra for listrada significa que há um intervalo entre cada episódio. As cores das barras são pseudo-aleatórias, baseadas no nome do anime.</p>
         <p>Eu tento organizar meu planejamento para reduzir repetições e monotonia. Dessa forma evito otimizar tanto que assistir anime deixa de ser divertido.</p>
-        <button @click="sidebar = null">Fechar</button>
+        <p>Os gêneros são os do AniList. Animes cujos dados ainda não foram sincronizados com o AniList ou entradas que não são animes não tem informação de gênero. Essas são as cores usadas pelos gêneros:</p>
+        <div
+          v-for="genre of genres"
+          :style="{backgroundColor: genre.color, color: genre.textColor}"
+          class="genre-colors"
+          key="genre.id"
+        >{{ genre.name }} - {{ genre.count }} {{ genre.count === 1 ? 'anime' : 'animes' }}</div>
       </div>
     </transition>
     <div class="season-area" ref="seasonArea"
