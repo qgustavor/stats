@@ -155,7 +155,8 @@ const app = new Vue({
         }
 
         season.bgColor = baseColor.toString()
-        season.textColor = season.skipPerLoop || baseColor.getLuminance() > 0.5 ? 'black' : 'white'
+        season.textColor = season.skipPerLoop ||
+          new Color(genre.color).to('lab').lab.l > 50 ? 'black' : 'white'
         season.bgColorAlt = tinycolor.mix('white', baseColor, 25).toString()
 
         if (season.genres) {
