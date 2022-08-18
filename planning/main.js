@@ -2,7 +2,7 @@ function xxHash32 (b,f) {f=void 0===f?0:f;var a=f+374761393&4294967295,c=0;if(16
 16;return 0>a?a+4294967296:a}
 
 const textEncoder = new TextEncoder()
-function getAnimeColor(name){
+function getAnimeColor (name) {
   const normalized = textEncoder.encode(name.toLowerCase())
   return tinycolor('#F12')
     .desaturate(xxHash32(normalized.slice(5)) % 50)
@@ -33,12 +33,14 @@ const app = new Vue({
     seasons: [],
     annotations: [],
     historyMarks: [],
+    genres: [],
     lastPushed: null,
     sidebar: null,
     recommendedAnime: '',
     recommendedMessage: '',
     recommendedWorking: false,
     animelist: 'anilist',
+    colorMode: 'name',
     reccomendationEndpoint: 'https://krat.es/15ab70e37a257b58a094',
     isGecko: navigator.userAgent.includes('Gecko/')
   },
@@ -70,6 +72,7 @@ const app = new Vue({
       this.seasons = data.seasons
       this.annotations = data.annotations
       this.historyMarks = data.historyMarks
+      this.genres = data.genres
       this.organize()
       const baseScrollPos = await this.getLastEntry()
       this.setUpScrolling(baseScrollPos)
@@ -137,10 +140,21 @@ const app = new Vue({
     },
     organize () {
       this.seasons.forEach(season => {
-        const baseColor = getAnimeColor(season.anime)
+        let baseColor
+        if (this.colorMode === 'name') {
+          baseColor = getAnimeColor(season.anime)
+        } else {
+          const mainGenre = season.genres ? this.genres.find(e => season.genres.includes(e.id)) : null
+          baseColor = tinycolor(mainGenre ? mainGenre.color : 'gray')
+        }
+
         season.bgColor = baseColor.toString()
         season.textColor = season.skipPerLoop || baseColor.getLuminance() > 0.5 ? 'black' : 'white'
         season.bgColorAlt = tinycolor.mix('white', baseColor, 25).toString()
+
+        if (season.genres) {
+          season.genreNames = season.genres.map(id => this.genres.find(e => e.id === id).name).join(', ') || 'Gêneros desconhecidos'
+        }
 
         if (!season.skipPerLoop) season.skipPerLoop = 0
         if (!season.episodesPerLoop) season.episodesPerLoop = 1
@@ -168,7 +182,7 @@ const app = new Vue({
             : ''
         ) + (textShadow ? ';text-shadow:' + textShadow : '')
       })
-      
+
       this.updateAnimeUrls()
     },
     getLabelPosition (season) {
@@ -295,6 +309,9 @@ const app = new Vue({
       }
       if (!season.animeId) return
       if (typeof season.animeId === 'string') {
+        if (season.animeId.startsWith('AL-')) {
+          return 'https://anilist.co/anime/' + season.animeId.slice(3)
+        }
         if (season.animeId.startsWith('MDL-')) {
           return 'https://mydramalist.com/' + season.animeId.slice(4)
         }
