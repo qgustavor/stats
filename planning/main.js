@@ -327,6 +327,9 @@ const app = new Vue({
         if (season.animeId.startsWith('MDL-')) {
           return 'https://mydramalist.com/' + season.animeId.slice(4)
         }
+        if (season.animeId.startsWith('IMDB-')) {
+          return 'https://www.imdb.com/title/tt' + season.animeId.slice(5) + '/'
+        }
         if (season.animeId.startsWith('KITSU-')) {
           return 'https://kitsu.io/anime/' + season.animeId.slice(6)
         }
