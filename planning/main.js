@@ -1,5 +1,5 @@
 import xxHash32 from 'https://unpkg.com/xxh32@1.4.0/dist/index.bundle.js'
-import Color from 'https://colorjs.io/dist/color.js'
+import Color from 'https://unpkg.com/colorjs.io@0.4.2/dist/color.js'
 
 const textEncoder = new TextEncoder()
 function getAnimeColor (name) {
