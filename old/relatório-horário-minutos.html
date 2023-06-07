@@ -113,7 +113,7 @@ function fetchCallback (sheets) {
       count: 0
     }
   }
-  invervalData = sheets[keys.assistido]
+  intervalData = sheets[keys.assistido]
     .reduce(function (acc, e) {
       var nome = e[keys.nome]
       var index = animeNames.indexOf(nome)
@@ -135,7 +135,7 @@ function fetchCallback (sheets) {
       return acc
     }, intervalData)
     
-  invervalData.forEach(e => {
+  intervalData.forEach(e => {
     e.count = Math.round(e.count)
   })
 
@@ -152,7 +152,7 @@ function fetchCallback (sheets) {
   container.innerHTML = '<div class="day-cell table-title" style="text-align: center;font-size: 0.7em;color:cyan;">Heatmap de<br>minutos assistidos</div>' + weekDays.map(function (day) {
     return '<div class="day-cell table-title"><div class="day-count">' + day + '</div></div>'
   }).join('') +
-  invervalData
+  intervalData
     .map(function (day, n) {
       if (n % 8 === 0) {
         return '<div class="day-cell table-title"><div class="day-count">' +

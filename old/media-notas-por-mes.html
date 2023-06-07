@@ -90,7 +90,7 @@ function fetchCallback (sheets, tabletop) {
   }, {})
 
   var invervalKeys = Object.keys(invervalDataObj)
-  var invervalData = invervalKeys.map(function (e, i) {
+  var intervalData = invervalKeys.map(function (e, i) {
     var startDate = new Date(+e)
     var lastDate = new Date(+e)
 
@@ -125,7 +125,7 @@ function fetchCallback (sheets, tabletop) {
   var data = new google.visualization.DataTable()
   data.addColumn('date', 'Mês')
   data.addColumn('number', 'Nota média')
-  data.addRows(invervalData)
+  data.addRows(intervalData)
 
   var options = {
     title: 'Média móvel das notas de animes em 30 dias',

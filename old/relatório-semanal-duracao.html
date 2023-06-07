@@ -79,7 +79,7 @@ function fetchCallback (sheets, tabletop) {
   })
 
   var now = Date.now()
-  var invervalData = Object.keys(invervalDataObj.horas).map(function (e) {
+  var intervalData = Object.keys(invervalDataObj.horas).map(function (e) {
     var startDate = new Date(+e)
     var lastDate = new Date(+e)
     startDate.setDate(startDate.getDate() - 1)
@@ -94,7 +94,7 @@ function fetchCallback (sheets, tabletop) {
   var data = new google.visualization.DataTable()
   data.addColumn('string', 'Semana')
   data.addColumn('number', 'Minutos por episódio')
-  data.addRows(invervalData.slice(1))
+  data.addRows(intervalData.slice(1))
 
   var options = {
     title: 'Animes por dia',

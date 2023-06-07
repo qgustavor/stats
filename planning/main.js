@@ -1,5 +1,6 @@
-import xxHash32 from 'https://unpkg.com/xxh32@1.4.0/dist/index.bundle.js'
-import Color from 'https://unpkg.com/colorjs.io@0.4.2/dist/color.js'
+import xxHash32 from 'https://esm.sh/xxh32@1.4.0'
+import tinycolor from 'https://esm.sh/tinycolor2@1.6.0'
+import { createApp } from 'https://cdnjs.cloudflare.com/ajax/libs/vue/3.3.4/vue.esm-browser.prod.min.js'
 
 const textEncoder = new TextEncoder()
 function getAnimeColor (name) {
@@ -27,9 +28,8 @@ const observer = window.IntersectionObserver ? new IntersectionObserver(entries 
   unobserve: () => {}
 }
 
-const app = new Vue({
-  el: '.app',
-  data: {
+const app = createApp({
+  data: () => ({
     seasons: [],
     annotations: [],
     historyMarks: [],
@@ -43,7 +43,7 @@ const app = new Vue({
     colorMode: 'name',
     reccomendationEndpoint: 'https://krat.es/15ab70e37a257b58a094',
     isGecko: navigator.userAgent.includes('Gecko/')
-  },
+  }),
   created: function () {
     this.fetchData()
   },
@@ -78,7 +78,7 @@ const app = new Vue({
       this.setUpScrolling(baseScrollPos)
       setTimeout(this.handleScroll, 20)
       for (const genre of this.genres) {
-        genre.textColor = new Color(genre.color).to('lab').lab.l > 50 ? 'black' : 'white'
+        genre.textColor = tinycolor(genre.color).isLight() ? 'black' : 'white'
       }
     },
     async getLastEntryData () {
@@ -156,7 +156,7 @@ const app = new Vue({
 
         season.bgColor = baseColor.toString()
         season.textColor = season.skipPerLoop ||
-          new Color(season.bgColor).to('lab').lab.l > 50 ? 'black' : 'white'
+          tinycolor(season.bgColor).isLight() ? 'black' : 'white'
         season.bgColorAlt = tinycolor.mix('white', baseColor, 25).toString()
 
         if (season.genres) {
@@ -338,5 +338,7 @@ const app = new Vue({
     }
   }
 })
+
+app.mount('.app')
 
 const recommendedBlacklist = [1639]

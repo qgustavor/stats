@@ -100,7 +100,7 @@ function getData (sheets, tabletop) {
   }
 
   var invervalKeys = Object.keys(invervalDataObj)
-  var invervalData = invervalKeys.map(function (e, i) {
+  var intervalData = invervalKeys.map(function (e, i) {
     var date = new Date(+e)
     var genres = invervalDataObj[e]
 
@@ -156,7 +156,7 @@ function getData (sheets, tabletop) {
     data.addColumn({ type: 'string', role: 'tooltip', p: {html: true} })
     data.addColumn({ type: 'string', role: 'style' })
   }
-  data.addRows(invervalData)
+  data.addRows(intervalData)
   return data
 }
 

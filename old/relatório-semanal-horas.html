@@ -74,7 +74,7 @@ function fetchCallback (sheets, tabletop) {
 
   var now = Date.now()
   var invervalKeys = Object.keys(invervalDataObj)
-  var invervalData = invervalKeys.map(function (e, i) {
+  var intervalData = invervalKeys.map(function (e, i) {
     var startDate = new Date(+e)
     var lastDate = new Date(+e)
 
@@ -103,7 +103,7 @@ function fetchCallback (sheets, tabletop) {
   })
   data.addColumn('number', 'Previsão')
   data.addColumn('number', 'Média de sete semanas')
-  data.addRows(invervalData.slice(1))
+  data.addRows(intervalData.slice(1))
 
   var options = {
     title: 'Animes por dia',

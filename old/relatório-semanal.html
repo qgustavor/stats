@@ -62,7 +62,7 @@ function fetchCallback (sheets, tabletop) {
   }, {})
 
   var now = Date.now()
-  var invervalData = Object.keys(invervalDataObj).map(function (e) {
+  var intervalData = Object.keys(invervalDataObj).map(function (e) {
     var startDate = new Date(+e)
     var lastDate = new Date(+e)
     startDate.setDate(startDate.getDate() - 1)
@@ -88,7 +88,7 @@ function fetchCallback (sheets, tabletop) {
     role: 'certainty'
   })
   data.addColumn('number', 'Previsão')
-  data.addRows(invervalData.slice(1))
+  data.addRows(intervalData.slice(1))
 
   var options = {
     title: 'Animes por dia',
