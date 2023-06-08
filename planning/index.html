@@ -46,7 +46,7 @@
         <p>Eu tento organizar meu planejamento para reduzir repetições e monotonia. Dessa forma evito otimizar tanto que assistir anime deixa de ser divertido.</p>
         <p>Os gêneros são os do AniList. Animes cujos dados ainda não foram sincronizados com o AniList ou entradas que não são animes não têm informação de gênero e aparecem em cinza. Essas são as cores usadas pelos gêneros:</p>
         <div
-          v-for="genre of genres"
+          v-for="genre of genresReversed"
           :style="{backgroundColor: genre.color, color: genre.textColor}"
           class="genre-colors"
           key="genre.id"

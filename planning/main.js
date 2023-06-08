@@ -34,13 +34,14 @@ const app = createApp({
     annotations: [],
     historyMarks: [],
     genres: [],
+    genresReversed: [],
     lastPushed: null,
     sidebar: null,
     recommendedAnime: '',
     recommendedMessage: '',
     recommendedWorking: false,
     animelist: 'anilist',
-    colorMode: 'name',
+    colorMode: 'genre',
     reccomendationEndpoint: 'https://krat.es/15ab70e37a257b58a094',
     isGecko: navigator.userAgent.includes('Gecko/')
   }),
@@ -73,6 +74,7 @@ const app = createApp({
       this.annotations = data.annotations
       this.historyMarks = data.historyMarks
       this.genres = data.genres
+      this.genresReversed = data.genres.slice().reverse()
       this.organize()
       const baseScrollPos = await this.getLastEntry()
       this.setUpScrolling(baseScrollPos)
