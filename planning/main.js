@@ -50,12 +50,12 @@ const app = createApp({
   },
   directives: {
     'handle-intersection': {
-      inserted: function (el, options) {
+      mounted: function (el, options) {
         if (options.value.active) {
           observer.observe(el)
         }
       },
-      unbind: function (el, options) {
+      unmounted: function (el, options) {
         if (options.value.active) {
           observer.unobserve(el)
         }
