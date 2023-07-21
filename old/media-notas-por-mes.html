@@ -38,6 +38,8 @@ path[fill="#3366cc"] {
 </svg>
 
 <script>
+// TODO: FIX THIS CODE WHICH IS NOT WORKING AT ALL
+
 google.charts.load('current', {'packages': ['corechart']})
 google.charts.setOnLoadCallback(function () {
   fetch('spreadsheet.json').then(e => e.json()).then(fetchCallback)
@@ -78,9 +80,8 @@ function fetchCallback (sheets, tabletop) {
 
     var info = animeInfo[index]
     var score = Number(info[keys.score])
-    if (!score || Number(e[keys.episodio]) !== Number(info[keys.episodios])) {
-      return acc
-    }
+    var episode = Number(e[keys.episodio])
+    if (!score) return acc
 
     if (!acc[day]) acc[day] = {score: 0, count: 0}
     acc[day].score += score
@@ -107,7 +108,7 @@ function fetchCallback (sheets, tabletop) {
     state.buffer.push(element)
 
     var timeElapsed = element.last.getTime() - state.buffer[0].start.getTime()
-    if (timeElapsed > 30 * 864e5) {
+    if (timeElapsed > 90 * 864e5) {
       state.results.push([
         new Date((state.buffer[0].start.getTime() + element.last.getTime()) / 2),
         Math.round(state.buffer.reduce(function (sum, element) {
@@ -128,7 +129,7 @@ function fetchCallback (sheets, tabletop) {
   data.addRows(intervalData)
 
   var options = {
-    title: 'Média móvel das notas de animes em 30 dias',
+    title: '"Média" das notas de animes',
     legend: 'none',
     chartArea: {
       left: '3%',
