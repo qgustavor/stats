@@ -45,14 +45,20 @@ function fetchCallback (sheets, tabletop) {
 
   var keys = {
     assistido: 'Assistido',
+    animes: 'Animes',
     nome: 'Nome',
     data: 'Data',
-    episodio: 'Episódio'
+    episodio: 'Episódio',
+    episodios: 'Episódios'
   }
 
-  var assistido = sheets[keys.assistido]
+  var watched = sheets[keys.assistido]
+  var animeInfo = sheets[keys.animes]
+  var animeNames = animeInfo.map(function (e) {
+    return e[keys.nome]
+  })
 
-  var names = assistido.map(function (e) {
+  var names = watched.map(function (e) {
     return e[keys.nome]
   })
 
@@ -60,34 +66,31 @@ function fetchCallback (sheets, tabletop) {
     return i === names.indexOf(e)
   })
 
-  var ordem = uniqueNames.sort(function (a, b) {
-    return (new Date(
-        assistido[names.lastIndexOf(b)][keys.data]
-      )).getTime() - (new Date(
-        assistido[names.lastIndexOf(a)][keys.data]
-      )).getTime()
-  })
-
   var seasons = uniqueNames.reduce(function (obj, e) {
     obj[e] = []
     return obj
   }, {})
 
-  assistido.sort(function (a, b) {
+  watched.sort(function (a, b) {
     return a[keys.data].localeCompare(b[keys.data])
   }).forEach(function (e) {
     var animeSeasons = seasons[e[keys.nome]]
     var lastSeason = animeSeasons[animeSeasons.length - 1]
 
-    if (!lastSeason || lastSeason.episodio >= +e[keys.episodio]) {
+    if (!lastSeason || (lastSeason.episode >= +e[keys.episodio] && lastSeason.episode >= lastSeason.episodeThreshold)) {
+      var index = animeNames.indexOf(e[keys.nome])
+      var episodeCount = index === -1 ? null : (Number(animeInfo[index][keys.episodios]) || null)
       animeSeasons.push({
         minDate: e[keys.data],
         maxDate: e[keys.data],
-        episodio: +e[keys.episodio],
+        firstEpisode: +e[keys.episodio],
+        episode: +e[keys.episodio],
+        episodes: episodeCount,
+        episodeThreshold: episodeCount >= 12 ? episodeCount : episodeCount * 0.9,
         count: lastSeason ? (lastSeason.count + 1) : 1
       })
     } else {
-      lastSeason.episodio = e[keys.episodio]
+      lastSeason.episode = e[keys.episodio]
       lastSeason.maxDate = e[keys.data]
     }
   })
@@ -102,7 +105,8 @@ function fetchCallback (sheets, tabletop) {
 
       return [
         '', anime, '<strong>' + anime + '</strong>: ' + seasonData.count + 'ª vez<br>' +
-            'Ultimo episódio: ' + seasonData.episodio + '<br>' +
+            'Episódios ' + seasonData.firstEpisode + ' até ' + seasonData.episode +
+            (seasonData.episodes ? ' de ' + seasonData.episodes : '') + '<br>' +
             (interval < 864e5 // Less than one day only show one date
               ? 'Em ' + minDate.toDateString() : (
               'De ' + minDate.toDateString() + ' até ' + maxDate.toDateString()
