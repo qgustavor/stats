@@ -277,7 +277,7 @@ body, .app, .season-area {
 	margin: 0 -1px;
 	font-weight: bold;
 	font-family: "Caveat Brush", Comic Neue, Comic Sans MS, cursive;
-	text-shadow: 2px 2px #860e00, 1px 1px #b67e00;
+	text-shadow: -1px -1px #860e00, 2px 2px #860e00, 1px 1px #b67e00;
   font-size: 1.4rem;
   height: 25px;
   overflow: hidden;
@@ -293,12 +293,18 @@ body, .app, .season-area {
   src: url('./caveat-brush-v11-latin-regular.woff2') format('woff2');
 }
 
-
 .fixed-menu {
   position: fixed;
-  z-index: 10;
+  z-index: 20;
   right: 20px;
   top: 3px;
+}
+
+@media (max-width:768px) {
+.fixed-menu {
+  top: auto;
+  bottom: 3px;
+}
 }
 
 .sidebar {
@@ -309,7 +315,7 @@ body, .app, .season-area {
   width: 20em;
   background: #f4f4f4;
   box-shadow: 0 0 0.5em rgba(0, 0, 0, 0.5);
-  z-index: 15;
+  z-index: 30;
   padding: 1em;
   overflow-y: auto;
 }

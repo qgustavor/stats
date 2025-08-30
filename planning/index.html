@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <title>Planejamento de Animes</title>
   <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 </head>
 <body>
   <div class="app" v-cloak :class="{ isGecko }">
@@ -21,17 +22,12 @@
     </div>
     <transition name="slide-fade">
       <div class="sidebar" v-if="sidebar === 1">
-        <h1>Qual anime recomenda?</h1>
-        <input v-model="recommendedAnime" :disabled="!reccomendationEndpoint || recommendedWorking">
-        <button @click="sendRecommendedAnime" :disabled="!reccomendationEndpoint || recommendedWorking">Enviar recomendação</button><br>
-        <p>{{ recommendedMessage }}</p>
-        <hr>
-        <p v-if="!reccomendationEndpoint">
-          Essa função está desativada temporariamente por problemas técnicos.<br>
-          <a href="https://anilist.co/user/qgustavor/">Deixe uma mensagem no AniList.</a>
+        <h1>Recomendar anime</h1>
+        <p>
+          O formulário que existia aqui parou de funcionar <a href="https://github.com/sumitkolhe/krates/issues/3">desde 2023</a>.
         </p>
-        <p v-else>
-          Você pode também <a href="https://anilist.co/user/qgustavor/">deixar uma mensagem no AniList.</a>
+        <p>
+          Entre em contato comigo pelo <a href="https://signal.me/#eu/IRvCPi0rPBIpa3MCO7I4ixdDXcL44VAumqdfnGjtWDvgccTRV-lD66kvycc1PQpZ">Signal</a> ou pelo <a href="https://urusai.social/@qgustavor">Mastodon</a> (se você for criar conta no Mastodon não precisa ser nessa instância, desde que não seja no Threads — que não está federado — tá valendo).
         </p>
         <button @click="sidebar = null">Fechar</button>
       </div>
